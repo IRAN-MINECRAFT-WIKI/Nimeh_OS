@@ -1,0 +1,7 @@
+module NimehOS
+plugin NimehOSPlugin
+classname NimehOSPlugin
+
+BlobRect 1.0 BlobRect
+BlobGroup 1.0 BlobGroup
+ImageAnalyser 1.0 ImageAnalyser

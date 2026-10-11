@@ -1,0 +1,49 @@
+# ============================================================
+# qmldir — Local type definitions for NimehOS shell
+# ============================================================
+# This file declares every QML type that lives in this directory
+# so Quickshell/QtQuick can resolve them without an `import`
+# statement. It is a LOCAL qmldir (no `module` line).
+#
+# All .qml files in this folder (except shell.qml, the entry point)
+# MUST be listed here. Otherwise you get:
+#     "<TypeName> is not a type"
+#
+# ============================================================
+# Singletons (Theme + Animations)
+# ============================================================
+singleton Theme 1.0 Theme.qml
+singleton Animations 1.0 Animations.qml
+
+# ============================================================
+# Public Components (alphabetical)
+# ============================================================
+AIAssistantOrb 1.0 AIAssistantOrb.qml
+AltTabPreview 1.0 AltTabPreview.qml
+AppContextMenu 1.0 AppContextMenu.qml
+AppLauncher 1.0 AppLauncher.qml
+BatteryIcon 1.0 BatteryIcon.qml
+BlobGroup 1.0 BlobGroup.qml
+BlobRect 1.0 BlobRect.qml
+ClickRipple 1.0 ClickRipple.qml
+DesktopContextMenu 1.0 DesktopContextMenu.qml
+DesktopIcons 1.0 DesktopIcons.qml
+GlassPanel 1.0 GlassPanel.qml
+LockScreen 1.0 LockScreen.qml
+MediaControls 1.0 MediaControls.qml
+MicroInteractions 1.0 MicroInteractions.qml
+NimehQuickSettings 1.0 NimehQuickSettings.qml
+NimehStartMenu 1.0 NimehStartMenu.qml
+NimehTaskbar 1.0 NimehTaskbar.qml
+NotificationCenter 1.0 NotificationCenter.qml
+NovaOrb 1.0 NovaOrb.qml
+OSD 1.0 OSD.qml
+PowerMenu 1.0 PowerMenu.qml
+ScreenEdgeActions 1.0 ScreenEdgeActions.qml
+SnapLayouts 1.0 SnapLayouts.qml
+StateLayer 1.0 StateLayer.qml
+TaskView 1.0 TaskView.qml
+Wallpaper 1.0 Wallpaper.qml
+WidgetsPanel 1.0 WidgetsPanel.qml
+WindowTitleBar 1.0 WindowTitleBar.qml
+WorkspaceIndicator 1.0 WorkspaceIndicator.qml
