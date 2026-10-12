@@ -41,16 +41,18 @@ PanelWindow {
     id: tb
 
     // ============================================================
-    // ۱. پیکربندی PanelWindow
+    // ۱. پیکربندی PanelWindow — تسک‌بار شناور وسط پایین
     // ============================================================
+    // شناور (floating)، نه تمام عرض. exclusiveZone = 0 یعنی پنجره‌ها زیرش می‌رن.
     anchors.bottom: true
-    anchors.left: true
-    anchors.right: true
+    implicitWidth: Math.min(screen.width - 16, 720)
     implicitHeight: 48
     color: "transparent"
     WlrLayershell.namespace: "nimeh-taskbar"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusiveZone: 48
+    WlrLayershell.exclusionMode: ExclusionMode.Ignore
+    margins.bottom: 8
+    margins.left: (screen.width - implicitWidth) / 2
 
     // ============================================================
     // ۲. سیگنال‌ها (رابط عمومی)
@@ -72,28 +74,26 @@ PanelWindow {
     readonly property string ib: "file://$HOME/NimehOS/shell/icons/png/"
     // لیست برنامه‌های پین‌شده در نوار وظیفه.
     // n=name(فارسی)، i=icon file، e=exec، p=proc برای تشخیص اجرا
+    // از برنامه‌های سبک بدون KDE استفاده می‌شه: foot, thunar, firefox
     readonly property var pinnedApps: [
-        { n: "فایل‌ها",   i: "ic_fluent_folder_24_regular.png",   e: "dolphin",   p: "dolphin" },
-        { n: "تنظیمات",  i: "ic_fluent_settings_24_regular.png",  e: "$HOME/.local/bin/nimehos-settings", p: "quickshell" },
-        { n: "ترمینال",  i: "ic_fluent_edit_24_regular.png",      e: "konsole",   p: "konsole" },
-        { n: "مرورگر",   i: "ic_fluent_globe_24_regular.png",     e: "firefox",   p: "firefox" },
-        { n: "ویرایشگر", i: "ic_fluent_pen_24_regular.png",       e: "kate",      p: "kate" }
+        { n: "فایل‌ها",   i: "ic_fluent_folder_24_regular.png",   e: "thunar",   p: "thunar" },
+        { n: "تنظیمات",  i: "ic_fluent_settings_24_regular.png",  e: "nimehos-settings", p: "nimehos-settings" },
+        { n: "ترمینال",  i: "ic_fluent_edit_24_regular.png",      e: "foot",     p: "foot" },
+        { n: "مرورگر",   i: "ic_fluent_globe_24_regular.png",     e: "firefox",  p: "firefox" },
+        { n: "ویرایشگر", i: "ic_fluent_pen_24_regular.png",       e: "kate",     p: "kate" }
     ]
 
     // ============================================================
-    // ۴. پس‌زمینه شیشه‌ای (GlassPanel)
+    // ۴. پس‌زمینه شیشه‌ای (GlassPanel) — شناور با شعاع ۸
     // ============================================================
-    // radius=0 چون taskbar تمام عرض را می‌گیرد و گوشه‌های گرد نمی‌خواهیم.
-    // tintOpacity=0.85 تا blur زیر آن (توسط Hyprland) همچنان دیده شود.
-    // elevation=1 برای سایه ملایم (سایه به سمت پایین می‌رود که برای
-    // taskbar پایین صفحه مناسب است).
+    // شناور وسط پایین، شعاع ۸ (مثل HTML)، پس‌زمینه نیمه‌شفاف
     GlassPanel {
         id: bg
         anchors.fill: parent
-        type: "frosted2"
-        panelRadius: 0
+        type: "acrylic2"
+        panelRadius: Theme.glassRadiusWindow
         elevation: 1
-        shadowEnabled: false  // taskbar پایین صفحه است، سایه نیاز نیست
+        shadowEnabled: true
 
         // خط جداکننده‌ی نازک در بالا — یک gradient افقی نرم
         Rectangle {
