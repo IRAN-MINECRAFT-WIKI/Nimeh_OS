@@ -28,7 +28,7 @@ PanelWindow {
     Timer { interval: 8000; running: true; repeat: true; triggeredOnStart: true; onTriggered: lister.running = true }
 
     function openFile(name) {
-        const path = "/home/nimeh/Desktop/" + name
+        const path = "$HOME/Desktop/" + name
         Qt.openUrlExternally("file://" + path)
     }
     Process { id: opener }
@@ -89,7 +89,7 @@ PanelWindow {
                         width: 40; height: 40
                         source: {
                             const n = it.modelData
-                            const base = "file:///home/nimeh/NimehOS/shell/icons/png/"
+                            const base = "file://$HOME/NimehOS/shell/icons/png/"
                             if (n.endsWith(".txt")) return base + "ic_fluent_document_24_regular.png"
                             if (n.endsWith(".png") || n.endsWith(".jpg")) return base + "ic_fluent_image_24_regular.png"
                             if (n.endsWith(".sh")) return base + "ic_fluent_terminal_24_regular.png"
@@ -124,7 +124,7 @@ PanelWindow {
                     }
                     onDoubleClicked: {
                         const n = it.modelData
-                        const p = "/home/nimeh/Desktop/" + n
+                        const p = "$HOME/Desktop/" + n
                         // پوشه با دلفین، فایل با اپ پیش‌فرض
                         if (!n.includes(".")) diRoot.openWithDolphin(p)
                         else diRoot.openFile(n)

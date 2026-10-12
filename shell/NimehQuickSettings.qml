@@ -11,7 +11,7 @@ Item {
     signal closeRequested()
     signal allSettingsRequested()
 
-    readonly property string ib: "file:///home/nimeh/NimehOS/shell/icons/png/"
+    readonly property string ib: "file://$HOME/NimehOS/shell/icons/png/"
 
     property bool wifiOn: false
     property bool bluetoothOn: false

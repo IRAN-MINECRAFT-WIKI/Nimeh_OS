@@ -59,12 +59,12 @@ SSH_HOST = "nimeh@127.0.0.1"
 SSH_PORT = "2222"
 
 # Remote paths
-REMOTE_BASE = "/home/nimeh/NimehOS/"
-REMOTE_SHELL = "/home/nimeh/NimehOS/shell"
-REMOTE_SCRIPTS = "/home/nimeh/NimehOS/scripts"
-REMOTE_BIN = "/home/nimeh/NimehOS/bin"
-REMOTE_APPS = "/home/nimeh/NimehOS/apps"
-REMOTE_PLUGIN = "/home/nimeh/NimehOS/NimehOS_plugin"
+REMOTE_BASE = "$HOME/NimehOS/"
+REMOTE_SHELL = "$HOME/NimehOS/shell"
+REMOTE_SCRIPTS = "$HOME/NimehOS/scripts"
+REMOTE_BIN = "$HOME/NimehOS/bin"
+REMOTE_APPS = "$HOME/NimehOS/apps"
+REMOTE_PLUGIN = "$HOME/NimehOS/NimehOS_plugin"
 REMOTE_HYPR_DIR = "~/.config/hypr"
 REMOTE_HYPR_CONF = "~/.config/hypr/hyprland.conf"
 REMOTE_HYPR_BAK = "~/.config/hypr/hyprland.conf.bak"
@@ -97,13 +97,13 @@ QS_ENV = (
     "$(ls /run/user/$(id -u)/hypr/ 2>/dev/null | tail -1); "
     "export QT_QPA_PLATFORM=wayland; "
     "export QT_QUICK_BACKEND=software; "
-    "export QML_IMPORT_PATH=/usr/lib/qt6/qml:/home/nimeh/NimehOS/shell; "
+    "export QML_IMPORT_PATH=/usr/lib/qt6/qml:$HOME/NimehOS/shell; "
 )
 
 # ============================================================
 # Embedded hyprlock.conf — نوشته می‌شه به ~/.config/hypr/hyprlock.conf
 # این محتوا مستقل از fix_lockscreen.sh نوشته می‌شه تا مطمئن باشیم
-# در مسیر درست (/home/nimeh/) قرار می‌گیره نه /root/.
+# در مسیر درست ($HOME/) قرار می‌گیره نه /root/.
 # ============================================================
 HYPRLOCK_CONF = r"""# ═════════════════════════════════════════════════════════
 #  NimehOS — hyprlock configuration
@@ -672,7 +672,7 @@ def step_configure():
     # بررسی محتوای exec-once
     log("بررسی exec-once در hyprland.conf...", "INFO")
     rc, out, err = ssh_run(
-        f"grep -c 'quickshell -p /home/nimeh/NimehOS/shell' {REMOTE_HYPR_CONF} 2>/dev/null",
+        f"grep -c 'quickshell -p $HOME/NimehOS/shell' {REMOTE_HYPR_CONF} 2>/dev/null",
         timeout=10,
     )
     count = out.strip() if out else "0"

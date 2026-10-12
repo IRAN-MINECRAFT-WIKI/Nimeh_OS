@@ -17,7 +17,7 @@ Item {
 
         Image {
             visible: root.icon !== ""
-            source: root.icon ? "file:///home/nimeh/NimehOS/shell/icons/png/" + root.icon : ""
+            source: root.icon ? "file://$HOME/NimehOS/shell/icons/png/" + root.icon : ""
             width: 18; height: 18
             sourceSize: Qt.size(18,18)
             anchors.verticalCenter: parent.verticalCenter

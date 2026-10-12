@@ -69,7 +69,7 @@ Item {
     property bool open: false
 
     // پیشوند مسیر آیکون‌ها.
-    readonly property string ib: "file:///home/nimeh/NimehOS/shell/icons/png/"
+    readonly property string ib: "file://$HOME/NimehOS/shell/icons/png/"
 
     // ============================================================
     // ۲. وضعیت داخلی (جستجو و همه‌ی برنامه‌ها)
@@ -86,7 +86,7 @@ Item {
         { n: "مرورگر",     i: "ic_fluent_globe_24_regular.png",      e: "firefox" },
         { n: "ترمینال",    i: "ic_fluent_edit_24_regular.png",       e: "konsole" },
         { n: "ویرایشگر",   i: "ic_fluent_pen_24_regular.png",        e: "kate" },
-        { n: "تنظیمات",    i: "ic_fluent_settings_24_regular.png",   e: "/home/nimeh/.local/bin/nimehos-settings" },
+        { n: "تنظیمات",    i: "ic_fluent_settings_24_regular.png",   e: "$HOME/.local/bin/nimehos-settings" },
         { n: "ماشین‌حساب", i: "ic_fluent_calculator_24_regular.png", e: "kcalc" },
         { n: "تصویر",      i: "ic_fluent_image_24_regular.png",      e: "gwenview" },
         { n: "موسیقی",     i: "ic_fluent_music_24_regular.png",      e: "elisa" },
@@ -764,7 +764,7 @@ Item {
     Process {
         id: appScan
         command: ["sh", "-c",
-            "for f in /usr/share/applications/*.desktop /home/nimeh/.local/share/applications/*.desktop; do " +
+            "for f in /usr/share/applications/*.desktop $HOME/.local/share/applications/*.desktop; do " +
             "[ -f \"$f\" ] || continue; " +
             "grep -q 'NoDisplay=true' \"$f\" && continue; " +
             "name=$(grep -m1 '^Name=' \"$f\" | cut -d= -f2); " +

@@ -2,7 +2,7 @@
 # ============================================================
 # float-daemon — پنجره‌های tiled رو floating می‌کنه
 # نسخه امن: از pkill -x استفاده می‌کنه (exact match)
-# اجرا: /home/nimeh/NimehOS/bin/float-daemon &
+# اجرا: $HOME/NimehOS/bin/float-daemon &
 # ============================================================
 
 # لیست کلاس‌هایی که نباید floating بشن

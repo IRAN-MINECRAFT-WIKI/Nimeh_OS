@@ -190,7 +190,7 @@ PanelWindow {
 
                             Image {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                source: "file:///home/nimeh/NimehOS/shell/icons/png/" + modelData.icon
+                                source: "file://$HOME/NimehOS/shell/icons/png/" + modelData.icon
                                 width: 28; height: 28
                                 sourceSize: Qt.size(28,28)
                             }

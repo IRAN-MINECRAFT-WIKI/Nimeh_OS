@@ -80,8 +80,8 @@ PanelWindow {
 
             // Section: New
             MenuSection { label: "جدید" }
-            MenuItem { icon: "ic_fluent_folder_add_24_regular.png"; text: "پوشه جدید"; onClicked: { Quickshell.execDetached(["sh","-c","mkdir -p /home/nimeh/Desktop/'New Folder'"]); cmRoot.hide() } }
-            MenuItem { icon: "ic_fluent_document_add_24_regular.png"; text: "فایل متنی"; onClicked: { Quickshell.execDetached(["sh","-c","touch /home/nimeh/Desktop/newfile.txt"]); cmRoot.hide() } }
+            MenuItem { icon: "ic_fluent_folder_add_24_regular.png"; text: "پوشه جدید"; onClicked: { Quickshell.execDetached(["sh","-c","mkdir -p $HOME/Desktop/'New Folder'"]); cmRoot.hide() } }
+            MenuItem { icon: "ic_fluent_document_add_24_regular.png"; text: "فایل متنی"; onClicked: { Quickshell.execDetached(["sh","-c","touch $HOME/Desktop/newfile.txt"]); cmRoot.hide() } }
             MenuItem { icon: "ic_fluent_document_24_regular.png"; text: "سند جدید"; hasSubmenu: true; onClicked: cmRoot.hide() }
             MenuSeparator {}
 
@@ -94,7 +94,7 @@ PanelWindow {
 
             // Section: System
             MenuSection { label: "سیستم" }
-            MenuItem { icon: "ic_fluent_settings_24_regular.png"; text: "تنظیمات NimehOS"; onClicked: { Quickshell.execDetached(["/home/nimeh/.local/bin/nimehos-settings"]); cmRoot.hide() } }
+            MenuItem { icon: "ic_fluent_settings_24_regular.png"; text: "تنظیمات NimehOS"; onClicked: { Quickshell.execDetached(["$HOME/.local/bin/nimehos-settings"]); cmRoot.hide() } }
             MenuItem { icon: "ic_fluent_terminal_24_regular.png"; text: "باز کردن ترمینال"; onClicked: { Quickshell.execDetached(["konsole"]); cmRoot.hide() } }
         }
     }
@@ -119,7 +119,7 @@ PanelWindow {
 
             Image {
                 source: parent.parent.icon ?
-                    "file:///home/nimeh/NimehOS/shell/icons/png/" + parent.parent.icon : ""
+                    "file://$HOME/NimehOS/shell/icons/png/" + parent.parent.icon : ""
                 width: 16; height: 16
                 sourceSize: Qt.size(16,16)
                 anchors.verticalCenter: parent.verticalCenter

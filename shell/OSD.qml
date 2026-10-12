@@ -56,16 +56,16 @@ PanelWindow {
                 source: {
                     if (osdRoot.osdType === "volume") {
                         if (osdRoot.muted || osdRoot.level === 0)
-                            return "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_speaker_off_24_regular.png"
+                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_off_24_regular.png"
                         if (osdRoot.level < 33)
-                            return "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_speaker_0_24_regular.png"
+                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_0_24_regular.png"
                         if (osdRoot.level < 66)
-                            return "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_speaker_1_24_regular.png"
-                        return "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_speaker_2_24_regular.png"
+                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_1_24_regular.png"
+                        return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_2_24_regular.png"
                     } else {
                         if (osdRoot.level < 33)
-                            return "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_brightness_low_24_regular.png"
-                        return "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_brightness_high_24_regular.png"
+                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_brightness_low_24_regular.png"
+                        return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_brightness_high_24_regular.png"
                     }
                 }
             }

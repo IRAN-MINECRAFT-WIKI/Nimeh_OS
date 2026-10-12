@@ -131,7 +131,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     Image {
                         anchors.centerIn: parent
-                        source: "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_previous_24_regular.png"
+                        source: "file://$HOME/NimehOS/shell/icons/png/ic_fluent_previous_24_regular.png"
                         width: 14; height: 14
                         sourceSize: Qt.size(14,14)
                         opacity: 0.85
@@ -151,8 +151,8 @@ Rectangle {
                     Image {
                         anchors.centerIn: parent
                         source: mcRoot.isPlaying ?
-                            "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_pause_24_regular.png" :
-                            "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_play_24_regular.png"
+                            "file://$HOME/NimehOS/shell/icons/png/ic_fluent_pause_24_regular.png" :
+                            "file://$HOME/NimehOS/shell/icons/png/ic_fluent_play_24_regular.png"
                         width: 16; height: 16
                         sourceSize: Qt.size(16,16)
                     }
@@ -172,7 +172,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     Image {
                         anchors.centerIn: parent
-                        source: "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_next_24_regular.png"
+                        source: "file://$HOME/NimehOS/shell/icons/png/ic_fluent_next_24_regular.png"
                         width: 14; height: 14
                         sourceSize: Qt.size(14,14)
                         opacity: 0.85

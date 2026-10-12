@@ -49,7 +49,7 @@ PanelWindow {
     Process {
         id: appLoader
         command: ["sh","-c",
-          "for f in /usr/share/applications/*.desktop /home/nimeh/.local/share/applications/*.desktop; do " +
+          "for f in /usr/share/applications/*.desktop $HOME/.local/share/applications/*.desktop; do " +
           "name=$(grep -m1 '^Name=' \"$f\" | cut -d= -f2); " +
           "exec=$(grep -m1 '^Exec=' \"$f\" | cut -d= -f2 | cut -d' ' -f1); " +
           "icon=$(grep -m1 '^Icon=' \"$f\" | cut -d= -f2); " +
@@ -112,7 +112,7 @@ PanelWindow {
                     spacing: 10
 
                     Image {
-                        source: "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_search_24_regular.png"
+                        source: "file://$HOME/NimehOS/shell/icons/png/ic_fluent_search_24_regular.png"
                         width: 18; height: 18
                         sourceSize: Qt.size(18,18)
                         anchors.verticalCenter: parent.verticalCenter

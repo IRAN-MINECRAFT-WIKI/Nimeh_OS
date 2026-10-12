@@ -3,7 +3,7 @@
 ## 📦 Contents
 
 ```
-NimehOS_v5/
+NimehOS/
 ├── deploy.py              # Main deploy script (run this!)
 ├── install_deps.sh        # Install build deps on VM
 ├── build_cpp_on_vm.sh     # Build C++ plugin on VM
@@ -38,7 +38,7 @@ NimehOS_v5/
 ## 🚀 Quick Start
 
 ```cmd
-cd D:\NimehOS\NimehOS_v5
+cd D:\NimehOS\NimehOS
 python deploy.py all
 ```
 

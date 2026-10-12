@@ -217,7 +217,7 @@ PanelWindow {
             Behavior on color { ColorAnimation { duration: 150 } }
             Image {
                 anchors.centerIn: parent
-                source: "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_power_24_regular.png"
+                source: "file://$HOME/NimehOS/shell/icons/png/ic_fluent_power_24_regular.png"
                 width: 20; height: 20
                 sourceSize: Qt.size(20,20)
                 opacity: 0.8
@@ -237,7 +237,7 @@ PanelWindow {
             Behavior on color { ColorAnimation { duration: 150 } }
             Image {
                 anchors.centerIn: parent
-                source: "file:///home/nimeh/NimehOS/shell/icons/png/ic_fluent_arrow_clockwise_24_regular.png"
+                source: "file://$HOME/NimehOS/shell/icons/png/ic_fluent_arrow_clockwise_24_regular.png"
                 width: 20; height: 20
                 sourceSize: Qt.size(20,20)
                 opacity: 0.8

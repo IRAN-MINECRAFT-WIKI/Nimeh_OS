@@ -36,7 +36,7 @@ Rectangle {
 
         Image {
             visible: btn.icon !== ""
-            source: btn.icon ? "file:///home/nimeh/NimehOS/shell/icons/png/" + btn.icon : ""
+            source: btn.icon ? "file://$HOME/NimehOS/shell/icons/png/" + btn.icon : ""
             width: 16; height: 16
             sourceSize: Qt.size(16,16)
             anchors.verticalCenter: parent.verticalCenter

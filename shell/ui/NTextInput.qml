@@ -23,7 +23,7 @@ Rectangle {
 
         Image {
             visible: input.icon !== ""
-            source: input.icon ? "file:///home/nimeh/NimehOS/shell/icons/png/" + input.icon : ""
+            source: input.icon ? "file://$HOME/NimehOS/shell/icons/png/" + input.icon : ""
             width: 16; height: 16
             sourceSize: Qt.size(16,16)
             anchors.verticalCenter: parent.verticalCenter

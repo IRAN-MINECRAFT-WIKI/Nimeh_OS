@@ -69,12 +69,12 @@ PanelWindow {
     // ۳. پراپرتی‌های عمومی
     // ============================================================
     // پیشوند مسیر آیکون‌ها.
-    readonly property string ib: "file:///home/nimeh/NimehOS/shell/icons/png/"
+    readonly property string ib: "file://$HOME/NimehOS/shell/icons/png/"
     // لیست برنامه‌های پین‌شده در نوار وظیفه.
     // n=name(فارسی)، i=icon file، e=exec، p=proc برای تشخیص اجرا
     readonly property var pinnedApps: [
         { n: "فایل‌ها",   i: "ic_fluent_folder_24_regular.png",   e: "dolphin",   p: "dolphin" },
-        { n: "تنظیمات",  i: "ic_fluent_settings_24_regular.png",  e: "/home/nimeh/.local/bin/nimehos-settings", p: "quickshell" },
+        { n: "تنظیمات",  i: "ic_fluent_settings_24_regular.png",  e: "$HOME/.local/bin/nimehos-settings", p: "quickshell" },
         { n: "ترمینال",  i: "ic_fluent_edit_24_regular.png",      e: "konsole",   p: "konsole" },
         { n: "مرورگر",   i: "ic_fluent_globe_24_regular.png",     e: "firefox",   p: "firefox" },
         { n: "ویرایشگر", i: "ic_fluent_pen_24_regular.png",       e: "kate",      p: "kate" }
