@@ -519,6 +519,72 @@ QtObject {
     // ۱۳. مقداردهی اولیه
     // ============================================================
 
+    // ============================================================
+    // ۸. توکن‌های شیشه (Glass Tokens)
+    // ============================================================
+    // منبع: جدول شفافیت‌های انتخابی NimehOS
+    // مقادیر Qt.rgba بین ۰ تا ۱ (مثلاً 32/255 ≈ ۰.۱۲۵).
+
+    // --- Solid (بدون شفافیت) ---
+    readonly property color glassSolidFill:   "#202020"
+    readonly property color glassSolidBorder: "#2D2D2D"
+
+    // --- Acrylic (Windows 11) ---
+    readonly property color glassAcrylic1Fill:   Qt.rgba(32/255, 32/255, 32/255, 0.70)
+    readonly property color glassAcrylic1Border: Qt.rgba(1, 1, 1, 0.08)
+    readonly property int   glassAcrylic1Blur:   20
+    readonly property real  glassAcrylic1Sat:    0.25   // 150% CSS → (1.5-1)*0.5
+
+    readonly property color glassAcrylic2Fill:   Qt.rgba(32/255, 32/255, 32/255, 0.55)
+    readonly property color glassAcrylic2Border: Qt.rgba(1, 1, 1, 0.12)
+    readonly property int   glassAcrylic2Blur:   30
+    readonly property real  glassAcrylic2Sat:    0.35   // 170% CSS
+
+    readonly property color glassAcrylic3Fill:   Qt.rgba(32/255, 32/255, 32/255, 0.40)
+    readonly property color glassAcrylic3Border: Qt.rgba(1, 1, 1, 0.18)
+    readonly property int   glassAcrylic3Blur:   40
+    readonly property real  glassAcrylic3Sat:    0.50   // 200% CSS
+
+    // --- Frosted (iOS / visionOS) ---
+    readonly property color glassFrosted1Fill:   Qt.rgba(1, 1, 1, 0.08)
+    readonly property color glassFrosted1Border: Qt.rgba(1, 1, 1, 0.15)
+    readonly property int   glassFrosted1Blur:   15
+
+    readonly property color glassFrosted2Fill:   Qt.rgba(1, 1, 1, 0.12)
+    readonly property color glassFrosted2Border: Qt.rgba(1, 1, 1, 0.22)
+    readonly property int   glassFrosted2Blur:   25
+
+    readonly property color glassFrosted3Fill:   Qt.rgba(1, 1, 1, 0.15)
+    readonly property color glassFrosted3Border: Qt.rgba(1, 1, 1, 0.30)
+    readonly property int   glassFrosted3Blur:   35
+    readonly property real  glassFrosted3Sat:    0.25   // 150% CSS
+
+    readonly property color glassFrosted4Fill:         Qt.rgba(1, 1, 1, 0.20)
+    readonly property color glassFrosted4Border:       Qt.rgba(1, 1, 1, 0.35)
+    readonly property int   glassFrosted4Blur:         45
+    readonly property real  glassFrosted4Sat:          0.40   // 180% CSS
+    readonly property int   glassFrosted4BorderWidth:  2
+
+    // --- Liquid Glass (تعریف فقط، پیاده‌سازی بعداً) ---
+    readonly property int  glassLiquid1Blur: 20
+    readonly property real glassLiquid1Sat:  0.30   // 160% CSS
+    readonly property int  glassLiquid4Blur: 50
+    readonly property real glassLiquid4Sat:  0.60   // 220% CSS
+
+    // گرادیانت Liquid 1 (۳ استاپ، زاویه ۱۳۵°)
+    function glassLiquid1Gradient(): Gradient {
+        return Gradient {
+            orientation: Gradient.Vertical  // تقریبی ۱۳۵°
+            GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.12) }
+            GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0.04) }
+            GradientStop { position: 1.0; color: Qt.rgba(0, 120/255, 212/255, 0.12) }
+        }
+    }
+
+    // --- Radius ---
+    readonly property int glassRadiusPanel: 12
+    readonly property int glassRadiusWindow: 8
+
     Component.onCompleted: {
         const now = new Date()
         root.accentHour = now.getHours() + now.getMinutes() / 60.0
