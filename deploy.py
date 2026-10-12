@@ -6,14 +6,12 @@
 ══════════════════════════════════════════════════════════════════
 
 این اسکریپت فایل‌های NimehOS رو روی VM مستقر می‌کنه، پلاگین C++
-رو build و install می‌کنه، و shell رو جایگزین Caelestia می‌کنه.
 
 روش استفاده (روی ویندوز):
   cd D:\\NimehOS\\NimehOS
   python deploy.py <command>
 
 دستورات:
-  all                  - همه مراحل (snapshot → stop caelestia → deploy QML
                          → build C++ → configure hyprland → restart → screenshot)
   snapshot             - گرفتن VirtualBox snapshot از VM
   deploy               - انتقال فایل‌های QML و scripts به VM
@@ -21,14 +19,12 @@
   configure            - پیکربندی hyprland.conf و hyprlock.conf
   restart              - ری‌استارت Quickshell با env vars درست
   shot                 - گرفتن اسکرین‌شات با grim
-  restore-caelestia    - بازگرداندن Caelestia (rollback)
   logs                 - نمایش لاگ‌های Quickshell (/tmp/qs.log)
   list                 - لیست فایل‌های محلی برای deploy
   help                 - نمایش این راهنما
 
 مراحل (all):
   ۱. گرفتن snapshot از VM
-  ۲. توقف Caelestia shell (با احتیاط برای SSH)
   ۳. انتقال فایل‌های shell/ scripts/ bin/ apps/ به VM
   ۴. build و install پلاگین C++ روی VM
   ۵. پیکربندی Hyprland (backup + copy hyprland.conf) و hyprlock.conf
@@ -38,7 +34,6 @@
 نکات مهم:
   - تمام subprocessها از encoding="utf-8", errors="replace" استفاده می‌کنن
   - برای kill quickshell از pkill -x استفاده می‌شه (exact match، SSH رو نمی‌بنده)
-  - برای kill caelestia از pkill -f '[c]aelestia' با bracket trick استفاده می‌شه
   - تمام خروجی‌ها قبل از slicing با `if out:` چک می‌شن
   - در صورت شکست build، آخرین ۳۰ خط لاگ build نمایش داده می‌شه
   - در صورت شکست quickshell، محتوای /tmp/qs.log نمایش داده می‌شه
@@ -74,7 +69,6 @@ REMOTE_HYPR_DIR = "~/.config/hypr"
 REMOTE_HYPR_CONF = "~/.config/hypr/hyprland.conf"
 REMOTE_HYPR_BAK = "~/.config/hypr/hyprland.conf.bak"
 REMOTE_HYPRLOCK = "~/.config/hypr/hyprlock.conf"
-REMOTE_CAELESTIA = "~/.config/quickshell/caelestia"
 
 # Local paths
 SHOTS_DIR = Path(r"D:\NimehOS\screenshots")
@@ -92,10 +86,8 @@ SUDO_PASS = "habib9170"
 
 # Process detection
 # برای quickshell از -x (exact match) استفاده می‌کنیم تا SSH رو نبنده.
-# برای caelestia از bracket trick [c]aelestia استفاده می‌کنیم تا pkill
 # خودش رو match نکنه (suicide prevention).
 QUICKSHELL_KILL = "pkill -x quickshell"
-CAELESTIA_KILL = "pkill -f '[c]aelestia'"
 
 # Quickshell env vars (به‌صورت مشترک برای restart و screenshot و restore)
 QS_ENV = (
@@ -233,8 +225,6 @@ def show_rollback_hint():
     log("=" * 60, "TITLE")
     log("راهنمای rollback:", "TITLE")
     log("=" * 60, "TITLE")
-    log("اگه shell کار نکرد، با دستور زیر Caelestia رو برگردونید:", "INFO")
-    log("  python deploy.py restore-caelestia", "OK")
     log("اگه SSH وصل نمی‌شه، VM رو از VirtualBox snapshot بازیابی کنید.", "INFO")
     log("ساختار snapshotها رو ببینید:", "INFO")
     log(f'  "{VBOX}" snapshot "{VM_NAME}" list', "INFO")
@@ -417,10 +407,7 @@ def step_snapshot():
 
 
 # ============================================================
-# Step 2: Stop Caelestia shell (با احتیاط برای SSH)
 # ============================================================
-def step_stop_caelestia():
-    step_header("۲", "توقف Caelestia shell")
 
     # ابتدا تست SSH
     rc, out, err = ssh_run("echo SSH_OK", timeout=15)
@@ -430,10 +417,7 @@ def step_stop_caelestia():
         return False
     log("✓ اتصال SSH برقراره", "OK")
 
-    # روش ۱: systemctl (اگه caelestia به‌صورت systemd service اجرا می‌شه)
-    log("تلاش با systemctl --user stop caelestia-shell...", "INFO")
     rc, out, err = ssh_run(
-        "systemctl --user stop caelestia-shell 2>/dev/null; echo EXIT=$?",
         timeout=15,
     )
     if out and "EXIT=0" in out:
@@ -445,9 +429,7 @@ def step_stop_caelestia():
     # روش ۲: pkill با bracket trick
     # '[c]aelestia' باعث می‌شه pkill خودش رو match نکنه (suicide prevention)
     log("تلاش با pkill -f '[c]aelestia'...", "INFO")
-    rc, out, err = ssh_run(f"{CAELESTIA_KILL} 2>/dev/null; echo DONE", timeout=15)
     if out and "DONE" in out:
-        log("  ✓ pkill caelestia اجرا شد", "OK")
 
     # روش ۳: kill تمام quickshellها (exact match — SSH رو نمی‌بنده)
     log("بستن تمام نمونه‌های quickshell (pkill -x)...", "INFO")
@@ -641,7 +623,6 @@ def step_build_cpp():
                 print(f"    {line}")
         if err:
             log(f"stderr (آخرین ۲۰۰ کاراکتر): {err[-200:] if err else ''}", "ERROR")
-        log("برای rollback: python deploy.py restore-caelestia", "WARN")
         return False
 
 
@@ -670,7 +651,6 @@ def step_configure():
     )
     if out:
         if "BACKED_UP" in out:
-            log("  ✓ backup از کانفیگ قبلی گرفته شد (caelestia-era)", "OK")
         elif "BAK_EXISTS" in out:
             log("  • backup قبلاً گرفته شده — حفظ می‌شه", "INFO")
         elif "NO_CONF" in out:
@@ -773,7 +753,6 @@ def step_restart_quickshell():
         log("  لاگ خالیه", "INFO")
 
     if not pid:
-        log("برای rollback: python deploy.py restore-caelestia", "WARN")
         return False
     return True
 
@@ -851,10 +830,7 @@ def step_logs():
     else:
         log("لاگ خالیه یا وجود نداره", "WARN")
 
-    # نمایش caelestia.log هم اگه باشه
-    rc, out, err = ssh_run("tail -20 /tmp/caelestia.log 2>/dev/null", timeout=10)
     if out:
-        log("\nلاگ Caelestia (/tmp/caelestia.log):", "INFO")
         for line in out.strip().split("\n")[-10:]:
             print(f"  {line}")
 
@@ -862,10 +838,7 @@ def step_logs():
 
 
 # ============================================================
-# Restore Caelestia (rollback)
 # ============================================================
-def step_restore_caelestia():
-    step_header("R", "بازگرداندن Caelestia shell")
 
     # ۱. kill NimehOS quickshell
     log("۱. بستن NimehOS quickshell (pkill -x quickshell)...", "INFO")
@@ -889,11 +862,8 @@ def step_restore_caelestia():
         elif "NO_BAK" in out:
             log("  ⚠ backup وجود نداره — hyprland.conf فعلی نگه داشته شد", "WARN")
 
-    # ۳. راه‌اندازی Caelestia
-    log("۳. راه‌اندازی Caelestia shell...", "INFO")
     cmd = (
         QS_ENV +
-        f"nohup quickshell -p {REMOTE_CAELESTIA} > /tmp/qs.log 2>&1 < /dev/null &"
     )
     ssh_run(cmd, timeout=15)
     time.sleep(4)
@@ -902,9 +872,7 @@ def step_restore_caelestia():
     rc, out, err = ssh_run("pgrep -x quickshell | head -1", timeout=10)
     pid = out.strip() if out else ""
     if pid:
-        log(f"✓ Caelestia در حال اجراست (PID: {pid})", "OK")
     else:
-        log("✗ Caelestia اجرا نشد!", "ERROR")
         rc, out, err = ssh_run("tail -20 /tmp/qs.log 2>/dev/null", timeout=10)
         if out:
             log("آخرین خطوط لاگ:", "INFO")
@@ -970,7 +938,6 @@ def show_help():
 def main():
     print()
     print("=" * 60)
-    print("  NimehOS Deploy Script v5 FINAL — C++ Plugin + Caelestia")
     print("=" * 60)
     print()
 
@@ -1020,8 +987,6 @@ def main():
 
     # --- restart (quickshell) ---
     if cmd == "restart":
-        if not step_stop_caelestia():
-            log("توقف caelestia ناموفق — ادامه با احتیاط", "WARN")
         ok = step_restart_quickshell()
         if not ok:
             show_rollback_hint()
@@ -1037,11 +1002,7 @@ def main():
         step_logs()
         return 0
 
-    # --- restore-caelestia ---
-    if cmd == "restore-caelestia":
-        ok = step_restore_caelestia()
         if ok:
-            log("\n✓✓✓ Caelestia بازگردانده شد ✓✓✓", "OK")
         return 0 if ok else 1
 
     # --- all ---
@@ -1049,8 +1010,6 @@ def main():
         ok = True
         if not step_snapshot():
             log("snapshot ناموفق — ادامه با احتیاط", "WARN")
-        if not step_stop_caelestia():
-            log("توقف caelestia ناموفق", "WARN")
         if not step_deploy():
             ok = False
         if not step_build_cpp():
@@ -1070,13 +1029,11 @@ def main():
         else:
             log("⚠ بعضی مراحل ناموفق بودن — لاگ‌ها رو بررسی کنید", "WARN")
             log("برای مشاهده لاگ: python deploy.py logs", "INFO")
-            log("برای rollback: python deploy.py restore-caelestia", "INFO")
         return 0 if ok else 1
 
     # --- unknown ---
     log(f"دستور نامشخص: {cmd}", "ERROR")
     log("برای راهنما: python deploy.py help", "INFO")
-    log("دستورات: all, snapshot, deploy, build-cpp, configure, restart, shot, restore-caelestia, logs, list, help", "INFO")
     return 1
 
 
@@ -1086,5 +1043,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print()
         log("قطع شد توسط کاربر (Ctrl+C)", "WARN")
-        log("برای rollback: python deploy.py restore-caelestia", "INFO")
         sys.exit(130)

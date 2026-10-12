@@ -46,14 +46,12 @@ python deploy.py all
 
 | Command | Description |
 |---------|-------------|
-| `all` | Full deploy: snapshot → stop caelestia → deploy → build C++ → configure → restart → screenshot |
 | `snapshot` | Take VirtualBox snapshot |
 | `deploy` | Deploy QML + scripts only |
 | `build-cpp` | Build and install C++ plugin on VM |
 | `configure` | Configure hyprland + hyprlock |
 | `restart` | Restart quickshell |
 | `shot` | Take screenshot |
-| `restore-caelestia` | Rollback to caelestia shell |
 | `logs` | Show quickshell logs |
 | `list` | List files to deploy |
 | `help` | Show help |
