@@ -1,0 +1,48 @@
+# === اطلاعات حساس (هرگز commit نشه) ===
+env
+.env
+.env.*
+*.local
+*.secret
+*.key
+*.pem
+config.py
+
+# === SSH keys ===
+*.ssh
+id_rsa
+id_ed25519
+nimeh_key*
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.so
+
+# === Logs ===
+*.log
+logs/
+
+# === Build artifacts ===
+build/
+*.o
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# === QML cache ===
+*.qmlc
+*.jsc
+
+# === Screenshots ===
+screenshots/
+
+# === Temporary ===
+*.tmp
+*.bak
+*.orig

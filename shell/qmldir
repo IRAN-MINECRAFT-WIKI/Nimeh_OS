@@ -1,0 +1,44 @@
+module NimehOS
+
+# ============================================================
+# qmldir — تعریف ماژول NimehOS
+# ============================================================
+#
+# این فایل، دایرکتوری /home/z/my-project/download/NimehOS_rebuild/ را
+# به‌عنوان یک ماژول QML به نام `NimehOS` تعریف می‌کند.
+#
+# نحوه فعال‌سازی (در shell.qml یا main.qml):
+#
+#   import NimehOS
+#
+# برای بارگذاری، مسیر دایرکتوری باید در QML_IMPORT_PATH یا
+# QML2_IMPORT_PATH باشد. مثال با Quickshell:
+#
+#   QML_IMPORT_PATH=/home/z/my-project/download/NimehOS_rebuild \
+#       quickshell -p /path/to/shell
+#
+# یا با کد:
+#
+#   QQmlEngine::addImportPath("/home/z/my-project/download/NimehOS_rebuild")
+#
+# سینگلتون‌ها (Theme, Animations) به‌صورت مستقیم با نام در دسترس هستند.
+# سایر فایل‌ها (BlobRect, BlobGroup, GlassPanel, StateLayer) به‌عنوان
+# کامپوننت‌های معمولی QML در دسترس هستند.
+
+# ============================================================
+# سینگلتون‌ها (Singletons)
+# ============================================================
+
+singleton Theme       Theme.qml
+singleton Animations  Animations.qml
+
+# ============================================================
+# کامپوننت‌های عمومی (Public Components)
+# ============================================================
+# (فایل‌های زیر به‌صورت خودکار توسط qmldir به‌عنوان type ثبت می‌شوند.
+# نیازی به خط جداگانه نیست، اما برای مستندسازی اینجا لیست شده‌اند.)
+#
+# BlobRect     BlobRect.qml     — مستطیل ارگانیک با فیزیک فنری
+# BlobGroup    BlobGroup.qml    — ظرف چند BlobRect با blur/shadow
+# GlassPanel   GlassPanel.qml   — پنل شیشه‌ای/اکریلیک
+# StateLayer   StateLayer.qml   — لایه تعامل M3 با ripple

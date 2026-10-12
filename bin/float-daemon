@@ -1,0 +1,63 @@
+#!/bin/bash
+# ============================================================
+# float-daemon — پنجره‌های tiled رو floating می‌کنه
+# نسخه امن: از pkill -x استفاده می‌کنه (exact match)
+# اجرا: /home/nimeh/NimehOS/bin/float-daemon &
+# ============================================================
+
+# لیست کلاس‌هایی که نباید floating بشن
+TILED_KEEPER="^(dolphin|kate|firefox|chromium|konsole|code|gimp|inkscape|libreoffice|thunderbird|virt-manager)$"
+
+# اگه سیگنال TERM بگیره، تمیز بسته شو
+cleanup() {
+    echo "[float-daemon] exiting..."
+    exit 0
+}
+trap cleanup TERM INT
+
+echo "[float-daemon] starting..."
+
+while true; do
+    # گرفتن لیست پنجره‌های فعال
+    WINDOWS=$(hyprctl clients -j 2>/dev/null)
+    [ -z "$WINDOWS" ] && sleep 1 && continue
+
+    # پارس کردن JSON و پیدا کردن پنجره‌های tiled
+    echo "$WINDOWS" | python3 -c "
+import json, sys, subprocess
+try:
+    data = json.load(sys.stdin)
+except:
+    sys.exit(0)
+
+import re
+KEEPER = re.compile(r'$TILED_KEEPER'.lower())
+
+for w in data:
+    if not w.get('workspace') or w['workspace'].get('id', -1) < 1:
+        continue
+    if w.get('floating'):
+        continue
+    if w.get('fullscreen'):
+        continue
+    cls = (w.get('class') or '').lower()
+    title = w.get('title') or ''
+    addr = w.get('address')
+    if not addr:
+        continue
+    # نگه‌داشتن برنامه‌های بزرگ tiled
+    if KEEPER.match(cls):
+        continue
+    # پنجره‌های کوچیک رو floating کن
+    size = w.get('size', [0, 0])
+    if size[0] < 800 or size[1] < 600:
+        # floating
+        subprocess.run(['hyprctl', 'dispatch', 'togglefloating', 'address:' + addr],
+                       capture_output=True, timeout=2)
+        # center
+        subprocess.run(['hyprctl', 'dispatch', 'centerwindow'],
+                       capture_output=True, timeout=2)
+" 2>/dev/null
+
+    sleep 2
+done
