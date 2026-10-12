@@ -10,11 +10,7 @@
 // توکن‌ها استفاده کنند تا حرکت کل سیستم یکدست و هماهنگ باشد.
 //
 // الگوبرداری شده از:
-//   - components/Anim.qml و components/CAnim.qml در caelestia-shell v2.5.0
-//   - plugin/src/Caelestia/Config/anim.hpp و tokens.hpp (با 12 منحنی M3 Expressive)
-//   - بخش ۴ تحلیل caelestia (انیمیشن‌ها و easings)
 //
-// تفاوت با caelestia:
 //   - به‌جای QList<qreal> bezier (که نیاز به C++ دارد)، از QEasingCurve.Type
 //     استاندارد QML استفاده می‌کنیم تا ۱۰۰٪ QML-only بماند.
 //   - OutBack با overshoot متفاوت (emphasize=1.4, spring=1.2, bouncy=2.0)

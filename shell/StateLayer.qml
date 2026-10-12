@@ -10,10 +10,7 @@
 //   - هنگام click: افکت ripple از نقطه کلیک گسترش می‌یابد و سپس fade می‌شود.
 //
 // الگوبرداری شده از:
-//   - components/StateLayer.qml در caelestia-shell v2.5.0 (۱۹۹ خط)
-//   - بخش ۴.۸ تحلیل caelestia (الگوهای hover و press)
 //
-// تفاوت با caelestia:
 //   - به‌جای Shape با PathArc و RadialGradient، از Rectangle ساده با clip:true
 //     برای ripple استفاده می‌کنیم (ساده‌تر، بدون نیاز به QtQuick.Shapes).
 //   - duration‌ها و easing‌ها از Animations.qml می‌آیند.
@@ -119,7 +116,6 @@ MouseArea {
             fadeAnim.start()
     }
 
-    // Note: نسخه caelestia یک هندلر onCircleRadiusChanged نیز داشت تا اگر ripple
     // به انتها رسید ولی هنوز pressed بود، fade را شروع کند. در نسخه QML-only
     // ما از onRunningChanged در rippleAnim استفاده می‌کنیم زیرا QML نام signal
     // handler برای پراپرتی‌های زیرخط‌دار (مثل _rippleRadius) را به‌درستی تشخیص
@@ -157,7 +153,6 @@ MouseArea {
         easing.type: Animations.smooth
     }
 
-    // Behavior برای تغییر نرم _stateOpacity (مطابق DefaultEffects در caelestia)
     Behavior on _stateOpacity {
         NumberAnimation {
             duration: 200

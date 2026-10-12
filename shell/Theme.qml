@@ -10,10 +10,7 @@
 // رنگ‌های هاردکد شده استفاده نکنند.
 //
 // الگوبرداری شده از:
-//   - services/Colours.qml در caelestia-shell v2.5.0 (پالت Material 3، tPalette، alterColour)
-//   - بخش ۳ تحلیل caelestia (سیستم رنگ M3)
 //
-// تفاوت با caelestia:
 //   - به‌جای ImageAnalyser C++، رنگ accent بر اساس ساعت روز محاسبه می‌شود.
 //   - پشتیبانی کامل از فارسی (تبدیل ارقام، تاریخ شمسی) اضافه شده.
 //   - توکن‌های فاصله/شعاع/زمان طبق spec خود NimehOS تنظیم شده.
@@ -331,7 +328,6 @@ QtObject {
     // ۱۰. تابع tPalette() — پالت با transparency اعمال شده
     // ============================================================
     //
-    // مشابه M3TPalette در caelestia، یک رنگ با transparency مشخص برمی‌گرداند.
     // این برای اجزایی که روی backdrop blur قرار می‌گیرند (drawers, panels) است.
     //
     // نحوه استفاده:
@@ -344,7 +340,6 @@ QtObject {
         return Qt.rgba(baseColor.r, baseColor.g, baseColor.b, a)
     }
 
-    // تابع layer مشابه caelestia: لایه 0 = پس‌زمینه، لایه 1+ = روی آن.
     function layer(c: color, layerIndex: int, alpha: real): color {
         if (layerIndex === 0) return tPalette(c, alpha)
         // برای لایه‌های بالاتر، روشنایی را تنظیم کن تا کنتراست حفظ شود.
@@ -364,7 +359,6 @@ QtObject {
     // ============================================================
 
     // luminance درخشان طبق فرمول BT.601 (با ریشه برای درک بهتر).
-    // مشابه getLuminance در services/Colours.qml caelestia.
     function getLuminance(c: color): real {
         if (c.r === 0 && c.g === 0 && c.b === 0) return 0
         return Math.sqrt(0.299 * (c.r ** 2) + 0.587 * (c.g ** 2) + 0.114 * (c.b ** 2))
@@ -414,7 +408,6 @@ QtObject {
     }
 
     // alterColour: تنظیم رنگ بر اساس luminance و شدت transparency
-    // (تبدیل ساده‌شده‌ی alterColour از caelestia Colours.qml).
     function alterColour(c: color, alpha: real, layerIdx: int): color {
         const lum = root.getLuminance(c)
         const offset = (dark ? 1 : -1) * 0.12 * layerIdx * (1 - alpha)

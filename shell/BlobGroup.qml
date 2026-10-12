@@ -4,10 +4,7 @@
 // BlobGroup.qml — ظرف مدیریت چند BlobRect با ترکیب بصری (نسخه QML-only)
 // ============================================================
 //
-// این فایل تقریبی QML-only از plugin/src/Caelestia/Blobs/blobgroup.{hpp,cpp}
-// در caelestia-shell v2.5.0 است.
 //
-// در نسخه C++ caelestia، BlobGroup نقش مهمی داشت: spatial neighbor lookup
 // با AABB intersection انجام می‌داد و shader SDF تمام blob‌های مجاور را در
 // یک draw call با smin (smooth-min) با هم merge می‌کرد. نتیجه: blob‌های
 // مجاور به‌صورت ارگانیک به‌هم متصل می‌شدند (نه simple overlay).
@@ -19,7 +16,6 @@
 //     (panel‌های جدا) کافی است.
 //
 // الگوبرداری شده از:
-//   - بخش ۵.۶ تحلیل caelestia (BlobGroup و ContentWindow.qml)
 //   - modules/drawers/ContentWindow.qml (الگوی استفاده از BlobGroup)
 //
 // نحوه استفاده:
@@ -79,7 +75,6 @@ Item {
             blurEnabled: root.blurEnabled && root.smoothing > 0
             blur: Math.min(1.0, root.smoothing)
             blurMax: 16
-            // shadow برای عمق (مطابق Elevation.qml در caelestia)
             shadowEnabled: root.shadowEnabled
             shadowColor: Qt.alpha(Theme.m3shadow, root.shadowOpacity)
             shadowBlur: 0.7

@@ -16,9 +16,6 @@
 //   layerrule blur, namespace:nimehos-*
 //
 // الگوبرداری شده از:
-//   - components/effects/Elevation.qml در caelestia (سیستم سایه ۵ سطحی)
-//   - بخش ۳.۵ تحلیل caelestia (سیستم Transparency / Acrylic)
-//   - بخش ۵.۲ تحلیل caelestia (Elevation)
 //
 // نحوه استفاده:
 //   import NimehOS
@@ -72,7 +69,6 @@ Rectangle {
         return root.blurEnabled ? base : Math.min(1.0, base + 0.2)
     }
 
-    // شدت سایه بر اساس elevation (مطابق Elevation.qml در caelestia).
     readonly property real _shadowAlpha: Math.max(0, Math.min(1, root.elevation * 0.10))
     readonly property real _shadowBlur: 0.3 + root.elevation * 0.10
     readonly property real _shadowOffset: root.elevation * 2
@@ -87,7 +83,6 @@ Rectangle {
     border.width: 1
 
     // gradient عمودی برای عمق (روشن‌تر در بالا، تیره‌تر در پایین).
-    // مطابق caelestia، surface از Theme به‌عنوان رنگ پایه استفاده می‌شود.
     gradient: Gradient {
         orientation: Gradient.Vertical
         GradientStop {

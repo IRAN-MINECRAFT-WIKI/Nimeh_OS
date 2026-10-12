@@ -4,8 +4,6 @@
 // BlobRect.qml — مستطیل ارگانیک با فیزیک کشش و فشرده‌سازی (نسخه QML-only)
 // ============================================================
 //
-// این فایل تقریبی QML-only از plugin/src/Caelestia/Blobs/blobrect.{hpp,cpp}
-// در caelestia-shell v2.5.0 است. چون پلاگین C++ و shader SDF در دسترس نیست،
 // به‌جای SDF rendering و ماتریس deformation 2x2، از:
 //   - Scale transform مستقل روی X و Y
 //   - Rotation جزئی برای حس ارگانیک
@@ -23,7 +21,6 @@
 //      سرعت < 0.1 پیکسل به حالت سکون برمی‌گردد.
 //
 // الگوبرداری شده از:
-//   - بخش ۵.۶ تحلیل caelestia (BlobRect و BlobGroup)
 //   - components/controls/LoadingIndicator.qml (الگوی SpringAnimation)
 //
 // نحوه استفاده:
@@ -52,9 +49,7 @@ Item {
     property real radius: Theme.radiusLg
     // حداکثر میزان کشش (0..0.35). هر چه بیشتر، کشش شدیدتر.
     property real deformation: 0.15
-    // سفتی فنر (هر چه بیشتر، واکنش سریع‌تر). مطابق caelestia: 200.
     property real stiffness: 200
-    // میرایی (هر چه بیشتر، نوسان کمتر). مطابق caelestia: 16.
     property real damping: 16
     // فعال/غیرفعال کردن فیزیک.
     property bool physicsEnabled: true
@@ -131,7 +126,6 @@ Item {
 
         const speed = Math.sqrt(dx * dx + dy * dy)
 
-        // Threshold سکون (مشابه caelestia: 5px/s در 60fps = 0.083px/frame)
         // اگر حرکت کم است، به حالت سکون برگرد
         if (speed < 0.1) {
             root._targetScaleX = 1.0
@@ -141,7 +135,6 @@ Item {
         }
 
         // محاسبه کشش و فشردگی
-        // مطابق caelestia: stretch = 1 + min(speed * factor, maxStretch)
         // compress = 1 / stretch (حفظ حجم تقریبی)
         const k_maxStretch = Math.min(0.35, root.deformation)
         // فاکتور 0.02 برای تطبیق با حرکت‌های معمولی QML (نسبت به 0.0005 در C++ که
@@ -238,7 +231,6 @@ Item {
             z: 1
         }
 
-        // رفتار نرم برای تغییر رنگ (مطابق CAnim در caelestia)
         Behavior on color {
             ColorAnimation {
                 duration: Animations.medium02
