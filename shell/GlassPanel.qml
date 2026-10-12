@@ -44,9 +44,13 @@ Rectangle {
     // ۱. پراپرتی‌های عمومی (Public API)
     // ============================================================
 
-    // شعاع گوشه‌ها. پیش‌فرض: radiusLg (14).
+    // نوع شیشه: solid | acrylic1 | acrylic2 | acrylic3 | frosted1..4 | liquid1 | liquid4
+    property string type: "frosted2"
+    // آیتم پس‌زمینه برای blur واقعی (اختیاری — اگه null باشه، فقط fill و border)
+    property Item backdrop: null
+    // شعاع گوشه‌ها. پیش‌فرض: glassRadiusPanel (12).
     // نکته: panelRadius استفاده می‌شه چون radius پراپرتی built-in Rectangle هست.
-    property real panelRadius: Theme.radiusLg
+    property real panelRadius: Theme.glassRadiusPanel
     // شدت tint پس‌زمینه (0..1). 0 = کاملاً شفاف، 1 = کاملاً کدر.
     property real tintOpacity: 0.7
     // فعال‌سازی blur (تنها alpha را تنظیم می‌کند، blur واقعی توسط Hyprland).
@@ -74,33 +78,47 @@ Rectangle {
     readonly property real _shadowOffset: root.elevation * 2
 
     // ============================================================
-    // ۳. تنظیمات بصری پایه
+    // ۳. تنظیمات بصری پایه — مبتنی بر type
     // ============================================================
+
+    // fill و border بر اساس type انتخاب می‌شن
+    readonly property color _fillType: {
+        switch (root.type) {
+            case "solid":    return Theme.glassSolidFill
+            case "acrylic1": return Theme.glassAcrylic1Fill
+            case "acrylic2": return Theme.glassAcrylic2Fill
+            case "acrylic3": return Theme.glassAcrylic3Fill
+            case "frosted1": return Theme.glassFrosted1Fill
+            case "frosted2": return Theme.glassFrosted2Fill
+            case "frosted3": return Theme.glassFrosted3Fill
+            case "frosted4": return Theme.glassFrosted4Fill
+            case "liquid1":  return Qt.rgba(1, 1, 1, 0.12)  // fallback
+            case "liquid4":  return Qt.rgba(1, 1, 1, 0.30)  // fallback
+            default:         return Theme.glassFrosted2Fill
+        }
+    }
+
+    readonly property color _borderType: {
+        switch (root.type) {
+            case "solid":    return Theme.glassSolidBorder
+            case "acrylic1": return Theme.glassAcrylic1Border
+            case "acrylic2": return Theme.glassAcrylic2Border
+            case "acrylic3": return Theme.glassAcrylic3Border
+            case "frosted1": return Theme.glassFrosted1Border
+            case "frosted2": return Theme.glassFrosted2Border
+            case "frosted3": return Theme.glassFrosted3Border
+            case "frosted4": return Theme.glassFrosted4Border
+            default:         return Theme.glassFrosted2Border
+        }
+    }
+
+    readonly property int _borderWidthType: root.type === "frosted4" ? Theme.glassFrosted4BorderWidth : 1
 
     // radius و border
     radius: root.panelRadius
-    border.color: Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, root.borderOpacity)
-    border.width: 1
-
-    // gradient عمودی برای عمق (روشن‌تر در بالا، تیره‌تر در پایین).
-    gradient: Gradient {
-        orientation: Gradient.Vertical
-        GradientStop {
-            position: 0.0
-            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b,
-                           Math.max(0, Math.min(1, root._effectiveTint + 0.04)))
-        }
-        GradientStop {
-            position: 0.5
-            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b,
-                           root._effectiveTint)
-        }
-        GradientStop {
-            position: 1.0
-            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b,
-                           Math.max(0, Math.min(1, root._effectiveTint - 0.04)))
-        }
-    }
+    color: _fillType
+    border.color: _borderType
+    border.width: _borderWidthType
 
     // ============================================================
     // ۴. سایه (Shadow) با MultiEffect
