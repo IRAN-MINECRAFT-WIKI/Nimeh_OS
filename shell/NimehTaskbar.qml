@@ -90,9 +90,8 @@ PanelWindow {
     GlassPanel {
         id: bg
         anchors.fill: parent
-        radius: 0
-        tintOpacity: 0.85
-        blurEnabled: true
+        type: "frosted2"
+        panelRadius: 0
         elevation: 1
         shadowEnabled: false  // taskbar پایین صفحه است، سایه نیاز نیست
 
