@@ -65,6 +65,7 @@ ShellRoot {
         WlrLayershell.namespace: "nimeh-startmenu"
         WlrLayershell.layer: WlrLayer.Overlay
         NimehStartMenu {
+            open: root.startMenuVisible
             onCloseRequested: root.startMenuVisible = false
             onPowerRequested: { root.startMenuVisible = false; root.powerMenuVisible = true }
             onLockRequested: {
