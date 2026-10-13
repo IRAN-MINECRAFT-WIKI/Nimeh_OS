@@ -247,52 +247,6 @@ PanelWindow {
         Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
 
         // ====================================================
-        // ۵.۶. AI Orb (با breathing animation)
-        // ====================================================
-        Item {
-            Layout.preferredWidth: 36
-            Layout.preferredHeight: 36
-            Layout.alignment: Qt.AlignVCenter
-
-            Rectangle {
-                id: aiOrb
-                anchors.centerIn: parent
-                width: 28
-                height: 28
-                radius: width / 2  // دایره کامل
-                // گرادیال شعاعی برای حس سه‌بعدی orb
-                gradient: Gradient {
-                    orientation: Gradient.Vertical
-                    GradientStop { position: 0.0; color: Theme.accentGlow }
-                    GradientStop { position: 1.0; color: Theme.accentDeep }
-                }
-                border.color: Theme.withAlpha(Theme.text, 0.15)
-                border.width: 1
-
-                // breathing: scale 1.0 ↔ 1.08 بینهایت
-                SequentialAnimation on scale {
-                    loops: Animation.Infinite
-                    NumberAnimation {
-                        from: 1.0; to: 1.08
-                        duration: Animations.slow01
-                        easing.type: Animations.smooth
-                    }
-                    NumberAnimation {
-                        from: 1.08; to: 1.0
-                        duration: Animations.slow01
-                        easing.type: Animations.smooth
-                    }
-                }
-            }
-
-            StateLayer {
-                color: Theme.text
-                rippleEnabled: true
-                onClicked: mouse => tb.aiClicked()
-            }
-        }
-
-        // ====================================================
         // ۵.۷. اندیکاتور Workspace (۴ نقطه)
         // ====================================================
         Item {
