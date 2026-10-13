@@ -571,15 +571,10 @@ QtObject {
     readonly property int  glassLiquid4Blur: 50
     readonly property real glassLiquid4Sat:  0.60   // 220% CSS
 
-    // گرادیانت Liquid 1 (۳ استاپ، زاویه ۱۳۵°)
-    function glassLiquid1Gradient(): Gradient {
-        return Gradient {
-            orientation: Gradient.Vertical  // تقریبی ۱۳۵°
-            GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.12) }
-            GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0.04) }
-            GradientStop { position: 1.0; color: Qt.rgba(0, 120/255, 212/255, 0.12) }
-        }
-    }
+    // رنگ‌های استاپ‌های گرادیانت Liquid 1 (برای استفاده در Gradient داخل QML)
+    readonly property color glassLiquid1Stop0: Qt.rgba(1, 1, 1, 0.12)
+    readonly property color glassLiquid1Stop1: Qt.rgba(1, 1, 1, 0.04)
+    readonly property color glassLiquid1Stop2: Qt.rgba(0, 120/255, 212/255, 0.12)
 
     // --- Radius ---
     readonly property int glassRadiusPanel: 12

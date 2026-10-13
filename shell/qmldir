@@ -1,44 +1,45 @@
-module NimehOS
+# ============================================================
+# qmldir — Local type definitions for NimehOS shell
+# ============================================================
+# This file declares every QML type in this directory
+# so Quickshell/QtQuick can resolve them without `import`.
+# It is a LOCAL qmldir (NO `module` line).
 
 # ============================================================
-# qmldir — تعریف ماژول NimehOS
+# Singletons
 # ============================================================
-#
-# این فایل، دایرکتوری /home/z/my-project/download/NimehOS_rebuild/ را
-# به‌عنوان یک ماژول QML به نام `NimehOS` تعریف می‌کند.
-#
-# نحوه فعال‌سازی (در shell.qml یا main.qml):
-#
-#   import NimehOS
-#
-# برای بارگذاری، مسیر دایرکتوری باید در QML_IMPORT_PATH یا
-# QML2_IMPORT_PATH باشد. مثال با Quickshell:
-#
-#   QML_IMPORT_PATH=/home/z/my-project/download/NimehOS_rebuild \
-#       quickshell -p /path/to/shell
-#
-# یا با کد:
-#
-#   QQmlEngine::addImportPath("/home/z/my-project/download/NimehOS_rebuild")
-#
-# سینگلتون‌ها (Theme, Animations) به‌صورت مستقیم با نام در دسترس هستند.
-# سایر فایل‌ها (BlobRect, BlobGroup, GlassPanel, StateLayer) به‌عنوان
-# کامپوننت‌های معمولی QML در دسترس هستند.
+singleton Theme       1.0 Theme.qml
+singleton Animations  1.0 Animations.qml
 
 # ============================================================
-# سینگلتون‌ها (Singletons)
+# Public Components (alphabetical)
 # ============================================================
-
-singleton Theme       Theme.qml
-singleton Animations  Animations.qml
-
-# ============================================================
-# کامپوننت‌های عمومی (Public Components)
-# ============================================================
-# (فایل‌های زیر به‌صورت خودکار توسط qmldir به‌عنوان type ثبت می‌شوند.
-# نیازی به خط جداگانه نیست، اما برای مستندسازی اینجا لیست شده‌اند.)
-#
-# BlobRect     BlobRect.qml     — مستطیل ارگانیک با فیزیک فنری
-# BlobGroup    BlobGroup.qml    — ظرف چند BlobRect با blur/shadow
-# GlassPanel   GlassPanel.qml   — پنل شیشه‌ای/اکریلیک
-# StateLayer   StateLayer.qml   — لایه تعامل M3 با ripple
+AIAssistantOrb      1.0 AIAssistantOrb.qml
+AltTabPreview       1.0 AltTabPreview.qml
+AppContextMenu      1.0 AppContextMenu.qml
+AppLauncher         1.0 AppLauncher.qml
+BatteryIcon         1.0 BatteryIcon.qml
+BlobGroup           1.0 BlobGroup.qml
+BlobRect            1.0 BlobRect.qml
+ClickRipple         1.0 ClickRipple.qml
+DesktopContextMenu  1.0 DesktopContextMenu.qml
+DesktopIcons        1.0 DesktopIcons.qml
+GlassPanel          1.0 GlassPanel.qml
+LockScreen          1.0 LockScreen.qml
+MediaControls       1.0 MediaControls.qml
+MicroInteractions   1.0 MicroInteractions.qml
+NimehQuickSettings  1.0 NimehQuickSettings.qml
+NimehStartMenu      1.0 NimehStartMenu.qml
+NimehTaskbar        1.0 NimehTaskbar.qml
+NotificationCenter  1.0 NotificationCenter.qml
+NovaOrb             1.0 NovaOrb.qml
+OSD                 1.0 OSD.qml
+PowerMenu           1.0 PowerMenu.qml
+ScreenEdgeActions   1.0 ScreenEdgeActions.qml
+SnapLayouts         1.0 SnapLayouts.qml
+StateLayer          1.0 StateLayer.qml
+TaskView            1.0 TaskView.qml
+Wallpaper           1.0 Wallpaper.qml
+WidgetsPanel        1.0 WidgetsPanel.qml
+WindowTitleBar      1.0 WindowTitleBar.qml
+WorkspaceIndicator  1.0 WorkspaceIndicator.qml
