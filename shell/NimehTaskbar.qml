@@ -549,7 +549,7 @@ PanelWindow {
                 const hh = String(now.getHours()).padStart(2, "0")
                 const mm = String(now.getMinutes()).padStart(2, "0")
                 timeLabel.text = Theme.toFa(hh + ":" + mm)
-                const j = Theme.jalali(now.getFullYear(), now.getMonth() + 1, now.getDate())
+                const j = Theme.jalali(now)
                 dateLabel.text = Theme.toFa(j.year) + "/" +
                                  Theme.toFa(String(j.month).padStart(2, "0")) + "/" +
                                  Theme.toFa(String(j.day).padStart(2, "0"))

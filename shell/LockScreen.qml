@@ -122,7 +122,7 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             text: {
                 const d = new Date()
-                const j = Theme.jalali(d.getFullYear(), d.getMonth()+1, d.getDate())
+                const j = Theme.jalali(d)
                 return Theme.jalaliWeekdays[d.getDay()] + "، " +
                        Theme.toFa(j.day) + " " +
                        Theme.jalaliMonths[j.month-1] + " " +

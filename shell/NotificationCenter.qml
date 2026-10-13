@@ -256,7 +256,7 @@ PanelWindow {
                             id: monthLabel
                             text: {
                                 const d = new Date()
-                                const j = Theme.jalali(d.getFullYear(), d.getMonth()+1, d.getDate())
+                                const j = Theme.jalali(d)
                                 return Theme.jalaliMonths[j.month-1] + " " + Theme.toFa(j.year)
                             }
                             color: "#F0F4FF"
@@ -306,7 +306,7 @@ PanelWindow {
                                 radius: 6
                                 color: {
                                     const d = new Date()
-                                    const j = Theme.jalali(d.getFullYear(), d.getMonth()+1, d.getDate())
+                                    const j = Theme.jalali(d)
                                     const dayNum = index - 4 + 1
                                     return dayNum === j.day ? "#0099FF" : "transparent"
                                 }
@@ -318,7 +318,7 @@ PanelWindow {
                                     text: valid ? Theme.toFa(dayNum) : ""
                                     color: {
                                         const d = new Date()
-                                        const j = Theme.jalali(d.getFullYear(), d.getMonth()+1, d.getDate())
+                                        const j = Theme.jalali(d)
                                         return dayNum === j.day ? "white" : "#C4CAD6"
                                     }
                                     font.family: "Vazirmatn"
