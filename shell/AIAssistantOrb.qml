@@ -36,7 +36,7 @@ Item {
 
         // Breathing animation
         SequentialAnimation on opacity {
-            loops: Animation.Infinite
+            loops: Animation.Infinite; running: visible
             NumberAnimation { to: 1.0; duration: 2000; easing.type: Easing.InOutSine }
             NumberAnimation { to: 0.75; duration: 2000; easing.type: Easing.InOutSine }
         }
@@ -53,7 +53,7 @@ Item {
             Behavior on opacity { NumberAnimation { duration: 200 } }
 
             SequentialAnimation on scale {
-                loops: Animation.Infinite
+                loops: Animation.Infinite; running: visible
                 NumberAnimation { to: 1.15; duration: 2500; easing.type: Easing.InOutSine }
                 NumberAnimation { to: 1.0; duration: 2500; easing.type: Easing.InOutSine }
             }
@@ -70,7 +70,7 @@ Item {
             border.width: 1
 
             RotationAnimation on rotation {
-                loops: Animation.Infinite
+                loops: Animation.Infinite; running: visible
                 from: 0
                 to: 360
                 duration: 3000
@@ -87,7 +87,7 @@ Item {
             opacity: 0.9
 
             SequentialAnimation on scale {
-                loops: Animation.Infinite
+                loops: Animation.Infinite; running: visible
                 NumberAnimation { to: 1.2; duration: 1500; easing.type: Easing.InOutSine }
                 NumberAnimation { to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
             }
@@ -112,7 +112,7 @@ Item {
                 opacity: 0.9
 
                 SequentialAnimation on height {
-                    loops: Animation.Infinite
+                    loops: Animation.Infinite; running: visible
                     NumberAnimation { to: 14; duration: 300 + index * 100; easing.type: Easing.InOutSine }
                     NumberAnimation { to: 4; duration: 300 + index * 100; easing.type: Easing.InOutSine }
                 }

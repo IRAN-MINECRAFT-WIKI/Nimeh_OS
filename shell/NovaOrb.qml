@@ -52,7 +52,7 @@ Item {
             z: -1
             Behavior on opacity { NumberAnimation { duration: 200 } }
             SequentialAnimation on scale {
-                loops: Animation.Infinite
+                loops: Animation.Infinite; running: visible
                 NumberAnimation { to: 1.08; duration: 2500; easing.type: Easing.InOutSine }
                 NumberAnimation { to: 1.0; duration: 2500; easing.type: Easing.InOutSine }
             }

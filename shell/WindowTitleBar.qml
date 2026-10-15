@@ -48,7 +48,8 @@ PanelWindow {
     readonly property bool isFloating: activeWin?.floating ?? false
     readonly property bool isFullscreen: activeWin?.fullscreen ?? false
     // visible به‌صورت مستقیم بایند شده — نه set در onStreamFinished
-    readonly property bool visible: !!activeWin && !isFullscreen && winW > 200 && winH > 100
+    readonly property bool shouldShow: !!activeWin && !isFullscreen && winW > 200 && winH > 100
+    visible: shouldShow
 
     // ===== بدنه نوار =====
     Rectangle {

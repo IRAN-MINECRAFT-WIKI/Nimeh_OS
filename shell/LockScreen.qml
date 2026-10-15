@@ -12,7 +12,7 @@ PanelWindow {
 
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    visible: shownNow || body.opacity > 0.01
+    // visible توسط shell.qml (lockScreenVisible) کنترل می‌شود
     WlrLayershell.namespace: "nimeh-lockscreen-overlay"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
@@ -23,7 +23,8 @@ PanelWindow {
     // --- نمایش بر اساس visible، بدون pgrep و Process ---
     // این پنجره توسط keybind هابلند (loginctl lock-session) نمایش داده می‌شود؛
     // polling پنج‌ثانیه‌ای pgrep hyprlock حذف شد. shownNow مستقیماً به visible بسته شده است.
-    property bool shownNow: lockRoot.visible
+    // shownNow مستقیماً به visible وابسته است (بدون circular binding)
+    readonly property bool shownNow: lockRoot.visible
 
     // تایمر ساعت فقط در زمان نمایش اجرا می‌شود (بدون تغییر)
     Timer {
@@ -34,7 +35,7 @@ PanelWindow {
     Rectangle {
         id: body
         anchors.fill: parent
-        opacity: lockRoot.shownNow ? 1 : 0
+        opacity: lockRoot.visible ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
         gradient: Gradient {
             GradientStop { position: 0.0; color: "#0A0E1A" }
