@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Quickshell.Io
 
 // ============================================================
 // WindowTitleBar — نوار عنوان کامل ویندوز ۱۱ (نسخه v3)
@@ -16,7 +15,7 @@ import Quickshell.Io
 PanelWindow {
     id: tbRoot
     color: "transparent"
-    visible: false
+    // visible از طریق readonly property پایین‌تر بایند می‌شود
     WlrLayershell.namespace: "nimeh-windowtitle"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
@@ -28,61 +27,28 @@ PanelWindow {
     margins.top: winY
     margins.left: winX
 
-    property int winX: 0
-    property int winY: 0
-    // FIX v4 (Bug 10): default to 800 so the title bar has a sane width
-    // before the first hyprctl poll completes (otherwise implicitWidth
-    // collapses to 0 and the bar is invisible for one frame).
-    property int winW: 800
-    property int winH: 0
-    property string winAddr: ""
-    property string winClass: ""
-    property string winTitle: ""
-    property bool isFloating: false
-    property bool isFullscreen: false
-
-    // Poll active window
-    Process {
-        id: poll
-        command: ["sh", "-c", "hyprctl activewindow -j 2>/dev/null"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const t = this.text.trim()
-                if (!t || t === "{}" || t === "Invalid") {
-                    tbRoot.visible = false
-                    return
-                }
-                try {
-                    const w = JSON.parse(t)
-                    if (!w.address || w.address === "0x") {
-                        tbRoot.visible = false
-                        return
-                    }
-                    tbRoot.winX = w.at[0]
-                    tbRoot.winY = w.at[1]
-                    tbRoot.winW = w.size[0]
-                    tbRoot.winH = w.size[1]
-                    tbRoot.winAddr = w.address
-                    tbRoot.winClass = w.class || ""
-                    tbRoot.winTitle = w.title || ""
-                    tbRoot.isFloating = w.floating || false
-                    tbRoot.isFullscreen = w.fullscreen || false
-                    tbRoot.visible = !w.fullscreen && w.size[0] > 200 && w.size[1] > 100
-                } catch(e) {
-                    tbRoot.visible = false
-                }
-            }
-        }
-    }
-    Timer {
-        // FIX v4 (Bug 10): poll every 150ms (was 200ms) for snappier
-        // title-bar updates when switching windows.
-        interval: 150
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: poll.running = true
-    }
+    // ============================================================
+    // 🔁 بازطراحی (Phase 2): حذف Process + Timer
+    // به‌جای polling با `hyprctl activewindow -j` هر ۱۵۰ms، از سرویس
+    // داخلی Quickshell.Hyprland استفاده می‌کنیم که event-driven است و
+    // به‌صورت خودکار با تغییر پنجره‌ی فعال آپدیت می‌شود.
+    // مزایا:
+    //   • حذف CPU overhead ناشی از fork+exec هربار hyprctl
+    //   • آپدیت آنی به‌جای تأخیر ۱۵۰ms
+    //   • حذف import Quickshell.Io (دیگر نیازی به Process/StdioCollector نیست)
+    // ============================================================
+    readonly property var activeWin: Hyprland.activeToplevel
+    readonly property int winX: activeWin?.at?.x ?? 0
+    readonly property int winY: activeWin?.at?.y ?? 0
+    readonly property int winW: activeWin?.size?.width ?? 0
+    readonly property int winH: activeWin?.size?.height ?? 0
+    readonly property string winAddr: activeWin?.address ?? ""
+    readonly property string winClass: activeWin?.class ?? ""
+    readonly property string winTitle: activeWin?.title ?? ""
+    readonly property bool isFloating: activeWin?.floating ?? false
+    readonly property bool isFullscreen: activeWin?.fullscreen ?? false
+    // visible به‌صورت مستقیم بایند شده — نه set در onStreamFinished
+    readonly property bool visible: !!activeWin && !isFullscreen && winW > 200 && winH > 100
 
     // ===== بدنه نوار =====
     Rectangle {
