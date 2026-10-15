@@ -1,155 +1,103 @@
+// ═════════════════════════════════════════════════════════
+//  OSD — پیام کوچک صدا و روشنایی (طبق نمونه‌ی HTML، کپسول شیشه‌ای)
+//  API سازگار با shell.qml:
+//    show(type, value, muted)   type: "volume" | "brightness"
+//    property level (۰..۱۰۰)، property muted
+// ═════════════════════════════════════════════════════════
 import QtQuick
-import QtQuick.Controls as Controls
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
-
-// ============================================================
-// OSD — On-Screen Display for volume/brightness changes
-// Feature L: Volume/Brightness OSD
-// ============================================================
 
 PanelWindow {
-    id: osdRoot
-    anchors.bottom: true
-    anchors.left: true
-    anchors.right: true
-    margins.bottom: 80
-    implicitWidth: 280
-    implicitHeight: 56
-    color: "transparent"
-    visible: false
-    WlrLayershell.namespace: "nimeh-osd"
-    WlrLayershell.layer: WlrLayer.Overlay
+    id: osd
 
-    property string osdType: "volume"  // "volume" | "brightness"
+    property string osdType: "volume"
     property int level: 50
     property bool muted: false
+    property bool shownNow: false
 
     function show(type, value, isMuted) {
         osdType = type
-        level = value
-        muted = isMuted || false
-        visible = true
-        appear.start()
+        level = Math.max(0, Math.min(100, Math.round(value)))
+        muted = isMuted
+        shownNow = true
         hideTimer.restart()
     }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 14
-        color: Qt.rgba(20/255,20/255,24/255,0.95)
-        border.color: Qt.rgba(1,1,1,0.10)
-        border.width: 1
+    anchors { bottom: true; left: true; right: true }
+    margins { bottom: 96 }
+    implicitHeight: 64
+    color: "transparent"
+    exclusiveZone: 0
+    WlrLayershell.namespace: "nimeh-osd"
+    WlrLayershell.layer: WlrLayer.Overlay
+    visible: shownNow || pill.opacity > 0.01
 
-        Row {
-            anchors.centerIn: parent
-            spacing: 14
-
-            // Icon
-            Image {
-                id: osdIcon
-                anchors.verticalCenter: parent.verticalCenter
-                width: 22
-                height: 22
-                sourceSize: Qt.size(22,22)
-                source: {
-                    if (osdRoot.osdType === "volume") {
-                        if (osdRoot.muted || osdRoot.level === 0)
-                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_off_24_regular.png"
-                        if (osdRoot.level < 33)
-                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_0_24_regular.png"
-                        if (osdRoot.level < 66)
-                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_1_24_regular.png"
-                        return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_speaker_2_24_regular.png"
-                    } else {
-                        if (osdRoot.level < 33)
-                            return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_brightness_low_24_regular.png"
-                        return "file://$HOME/NimehOS/shell/icons/png/ic_fluent_brightness_high_24_regular.png"
-                    }
-                }
-            }
-
-            // Progress bar
-            Rectangle {
-                id: bar
-                width: 180
-                height: 6
-                radius: 3
-                anchors.verticalCenter: parent.verticalCenter
-                color: Qt.rgba(1,1,1,0.10)
-
-                Rectangle {
-                    width: parent.width * (osdRoot.level / 100)
-                    height: parent.height
-                    radius: 3
-                    color: osdRoot.muted ? "#7A8598" : "#0099FF"
-                    Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                }
-            }
-
-            // Value
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: Theme.toFa(osdRoot.level) + "٪"
-                color: "#F0F4FF"
-                font.family: "Vazirmatn"
-                font.pixelSize: 12
-                font.weight: Font.DemiBold
-            }
-        }
-    }
-
-    // Auto-poller برای volume change
-    property int lastVolume: -1
-    property bool lastMuted: false
-
-    Process {
-        id: volCheck
-        command: ["sh","-c","wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const t = this.text.trim()
-                if (!t) return
-                const m = t.match(/Volume:\s*([0-9.]+)/)
-                if (!m) return
-                const v = Math.round(parseFloat(m[1]) * 100)
-                const muted = t.includes("MUTED")
-                if (osdRoot.lastVolume >= 0 && (v !== osdRoot.lastVolume || muted !== osdRoot.lastMuted)) {
-                    osdRoot.show("volume", v, muted)
-                }
-                osdRoot.lastVolume = v
-                osdRoot.lastMuted = muted
-            }
-        }
-    }
-
-    Timer {
-        interval: 800
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: volCheck.running = true
-    }
-
-    ParallelAnimation {
-        id: appear
-        NumberAnimation { target: osdRoot; property: "opacity"; from: 0; to: 1; duration: 180; easing.type: Easing.OutCubic }
-        NumberAnimation { target: osdRoot; property: "scale"; from: 0.9; to: 1; duration: 180; easing.type: Easing.OutBack }
-    }
     Timer {
         id: hideTimer
-        interval: 1500
-        onTriggered: {
-            disappear.start()
-            hideAfter.start()
+        interval: 1600
+        onTriggered: osd.shownNow = false
+    }
+
+    Rectangle {
+        id: pill
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        width: 300
+        height: 52
+        radius: 26
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.12)
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Qt.rgba(0.20, 0.21, 0.26, 0.92) }
+            GradientStop { position: 1.0; color: Qt.rgba(0.11, 0.12, 0.16, 0.95) }
+        }
+
+        opacity: osd.shownNow ? 1 : 0
+        transform: Translate { y: osd.shownNow ? 0 : 14 }
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on y { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 18
+            anchors.rightMargin: 18
+            spacing: 14
+
+            Text {
+                text: osd.muted ? "⊘" : (osd.osdType === "volume" ? "♪" : "☼")
+                color: osd.muted ? "#FCA5A5" : "#4CC2FF"
+                font.pixelSize: 18
+                Layout.preferredWidth: 22
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 6
+                radius: 3
+                color: Qt.rgba(1, 1, 1, 0.14)
+                Rectangle {
+                    width: parent.width * (osd.muted ? 0 : osd.level / 100)
+                    height: parent.height
+                    radius: 3
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: "#0078D4" }
+                        GradientStop { position: 1.0; color: "#4CC2FF" }
+                    }
+                    Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                }
+            }
+
+            Text {
+                text: osd.muted ? "بی‌صدا" : osd.level + "٪"
+                color: "#E5E7EB"
+                font.family: "Vazirmatn"
+                font.pixelSize: 12
+                Layout.preferredWidth: 46
+                horizontalAlignment: Text.AlignRight
+            }
         }
     }
-    ParallelAnimation {
-        id: disappear
-        NumberAnimation { target: osdRoot; property: "opacity"; to: 0; duration: 200 }
-        NumberAnimation { target: osdRoot; property: "scale"; to: 0.9; duration: 200 }
-    }
-    Timer { id: hideAfter; interval: 200; onTriggered: osdRoot.visible = false }
 }

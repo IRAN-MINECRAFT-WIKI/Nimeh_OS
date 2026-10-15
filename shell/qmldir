@@ -43,3 +43,5 @@ Wallpaper           1.0 Wallpaper.qml
 WidgetsPanel        1.0 WidgetsPanel.qml
 WindowTitleBar      1.0 WindowTitleBar.qml
 WorkspaceIndicator  1.0 WorkspaceIndicator.qml
+ColorContextMenu 1.0 ColorContextMenu.qml
+ContextOverlay 1.0 ContextOverlay.qml

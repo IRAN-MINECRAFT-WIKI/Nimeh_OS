@@ -1,394 +1,179 @@
+// ═════════════════════════════════════════════════════════
+//  NotificationCenter — مرکز اعلان و تقویم با انیمیشن ورود
+//  side = "right"  → از لبه‌ی راست صفحه بیرون می‌آید (پیش‌فرض)
+//  side = "bottom" → از لبه‌ی پایین (بالای تسک‌بار) بالا می‌آید
+//  visible را shell کنترل می‌کند؛ با نمایش، انیمیشن ورود اجرا می‌شود.
+// ═════════════════════════════════════════════════════════
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as Controls
 import Quickshell
 import Quickshell.Wayland
 
-// ============================================================
-// NotificationCenter — Toast + Full panel with calendar
-// FIX: حذف anchors از داخل Row → استفاده از RowLayout
-// ============================================================
-
 PanelWindow {
-    id: ncRoot
-    anchors.top: true
-    anchors.right: true
-    implicitWidth: 380
-    implicitHeight: 600
+    id: nc
+
+    property string side: "right"
+    property real p: 0   // ۰ = بیرون، ۱ = داخل
+    signal closeRequested()
+
+    anchors {
+        top: side === "right"
+        bottom: true
+        right: true
+    }
+    margins {
+        top: side === "right" ? 8 : 0
+        bottom: side === "right" ? 8 : 84
+        right: side === "right" ? 8 : 16
+    }
+    implicitWidth: side === "right" ? 380 : 420
+    implicitHeight: side === "right" ? 0 : 560
     color: "transparent"
+    exclusiveZone: 0
     WlrLayershell.namespace: "nimeh-notifications"
     WlrLayershell.layer: WlrLayer.Overlay
 
-    property bool panelOpen: visible
-    property var notifications: []
+    onVisibleChanged: p = visible ? 1 : 0
 
-    signal closeRequested()
+    Behavior on p { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
 
-    function show() {
-        // FIX: panelOpen now tracks `visible` so it is always in sync
-        // whether we are shown via show() or via the shell.qml
-        // `visible: root.notificationCenterVisible` binding.
-        visible = true
-        slideIn.from = ncRoot.width
-        slideIn.to = 0
-        slideIn.start()
-    }
-    function hide() {
-        slideOut.from = 0
-        slideOut.to = ncRoot.width
-        slideOut.start()
-        hideTimer.start()
-    }
-    function push(n) {
-        notifications.unshift(n)
-        if (notifications.length > 50) notifications.pop()
-        ncRoot.notifications = notifications.slice()
-        toastModel.append(n)
-        toastTimer.restart()
-    }
-    function clearAll() {
-        notifications = []
-        toastModel.clear()
-    }
-
-    // ----- Toast area (top-right, temporary) -----
-    Column {
-        id: toastColumn
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: 8
-        anchors.rightMargin: 8
-        spacing: 8
-        width: 360
-        z: 100
-
-        Repeater {
-            id: toastRepeater
-            model: ListModel { id: toastModel }
-
-            delegate: Rectangle {
-                width: 360
-                height: contentCol.height + 24
-                radius: 12
-                color: Qt.rgba(20/255, 20/255, 24/255, 0.96)
-                border.color: Qt.rgba(1,1,1,0.10)
-                border.width: 1
-                opacity: 0
-                scale: 0.92
-
-                Component.onCompleted: {
-                    fadeIn.start()
-                    autoDismiss.start()
-                }
-
-                SequentialAnimation { id: fadeIn
-                    ParallelAnimation {
-                        NumberAnimation { target: parent; property: "opacity"; to: 1; duration: 200; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: parent; property: "scale"; to: 1; duration: 200; easing.type: Easing.OutBack }
-                    }
-                }
-                Timer { id: autoDismiss; interval: 4500; onTriggered: fadeOut.start() }
-                SequentialAnimation { id: fadeOut
-                    ParallelAnimation {
-                        NumberAnimation { target: parent; property: "opacity"; to: 0; duration: 200 }
-                        NumberAnimation { target: parent; property: "scale"; to: 0.92; duration: 200 }
-                    }
-                    ScriptAction { script: toastModel.remove(model.index) }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 12
-                    color: "transparent"
-                    border.color: model.urgency === "critical" ? "#EF4444" :
-                                  model.urgency === "normal"  ? "#0099FF" : "transparent"
-                    border.width: 1
-                    opacity: 0.4
-                }
-
-                Column {
-                    id: contentCol
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: 14
-                    anchors.rightMargin: 14
-                    anchors.top: parent.top
-                    anchors.topMargin: 12
-                    spacing: 4
-
-                    // FIX: RowLayout به جای Row + anchors
-                    RowLayout {
-                        width: parent.width
-                        spacing: 8
-
-                        Text {
-                            text: model.app || "NimehOS"
-                            color: "#0099FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                            Layout.alignment: Qt.AlignLeft
-                        }
-                        Item { Layout.fillWidth: true; height: 1 }
-                        Text {
-                            text: model.time || "اکنون"
-                            color: "#7A8598"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 10
-                            Layout.alignment: Qt.AlignRight
-                        }
-                    }
-                    Text {
-                        width: parent.width
-                        text: model.title
-                        color: "#F0F4FF"
-                        font.family: "Vazirmatn"
-                        font.pixelSize: 13
-                        font.weight: Font.Bold
-                        wrapMode: Text.WordWrap
-                    }
-                    Text {
-                        width: parent.width
-                        text: model.body
-                        color: "#C4CAD6"
-                        font.family: "Vazirmatn"
-                        font.pixelSize: 12
-                        wrapMode: Text.WordWrap
-                        maximumLineCount: 3
-                        elide: Text.ElideRight
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        fadeOut.start()
-                    }
-                }
-            }
-        }
-
-        Timer {
-            id: toastTimer
-            interval: 100
-        }
-    }
-
-    // ----- Full notification panel (when toggled) -----
     Rectangle {
-        id: fullPanel
+        id: panel
         anchors.fill: parent
         radius: 16
-        color: Qt.rgba(12/255, 12/255, 16/255, 0.97)
-        border.color: Qt.rgba(1,1,1,0.08)
         border.width: 1
-        visible: ncRoot.panelOpen
-        opacity: ncRoot.panelOpen ? 1 : 0
-        x: ncRoot.panelOpen ? 0 : ncRoot.width
+        border.color: Qt.rgba(1, 1, 1, 0.10)
+        color: Qt.rgba(0.13, 0.14, 0.18, 0.96)
+        clip: true
 
-        Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        // جهت ورود
+        transform: Translate {
+            x: nc.side === "right" ? (1 - nc.p) * (panel.width + 24) : 0
+            y: nc.side === "bottom" ? (1 - nc.p) * (panel.height + 40) : 0
+        }
 
-        Column {
+        ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 16
+            anchors.margins: 18
+            spacing: 14
 
-            // Header — FIX: RowLayout
+            // سرتیتر
             RowLayout {
-                width: parent.width
-                spacing: 8
-
+                Layout.fillWidth: true
                 Text {
                     text: "اعلان‌ها"
-                    color: "#F0F4FF"
+                    color: "#F3F4F6"
                     font.family: "Vazirmatn"
-                    font.pixelSize: 18
-                    font.weight: Font.Bold
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
                 }
-                Item { Layout.fillWidth: true; height: 1 }
-                Rectangle {
-                    width: clearBtn.width + 20
-                    height: 32
-                    radius: 16
-                    color: clearMa.containsMouse ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.04)
-                    border.color: Qt.rgba(1,1,1,0.08)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Text {
-                        id: clearBtn
-                        anchors.centerIn: parent
-                        text: "پاک کردن همه"
-                        color: "#F0F4FF"
-                        font.family: "Vazirmatn"
-                        font.pixelSize: 11
+                Item { Layout.fillWidth: true }
+                Text {
+                    text: "پاک کردن همه"
+                    color: "#4CC2FF"
+                    font.family: "Vazirmatn"
+                    font.pixelSize: 11
+                    MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: notifModel.clear() }
+                }
+            }
+
+            // فهرست اعلان‌ها
+            ListView {
+                id: list
+                Layout.fillWidth: true
+                Layout.fillHeight: nc.side === "bottom"
+                Layout.preferredHeight: nc.side === "right" ? 260 : 0
+                clip: true
+                spacing: 8
+                model: notifModel
+                delegate: Rectangle {
+                    required property string title
+                    required property string body
+                    required property string app
+                    required property string when
+                    width: list.width
+                    height: 68
+                    radius: 12
+                    color: nHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.06)
+                    Behavior on color { ColorAnimation { duration: 140 } }
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 10
+                        Rectangle {
+                            Layout.preferredWidth: 32
+                            Layout.preferredHeight: 32
+                            radius: 8
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: "#0078D4" }
+                                GradientStop { position: 1.0; color: "#4CC2FF" }
+                            }
+                            Text { anchors.centerIn: parent; text: app.charAt(0); color: "white"; font.pixelSize: 13; font.weight: Font.Bold }
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            Text { Layout.fillWidth: true; text: title; color: "#F3F4F6"; font.family: "Vazirmatn"; font.pixelSize: 11; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: body; color: "#9CA3AF"; font.family: "Vazirmatn"; font.pixelSize: 10; elide: Text.ElideRight }
+                        }
+                        Text { text: when; color: "#6B7280"; font.family: "Vazirmatn"; font.pixelSize: 9; Layout.alignment: Qt.AlignTop }
                     }
                     MouseArea {
-                        id: clearMa
+                        id: nHover
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: ncRoot.clearAll()
+                        onClicked: notifModel.remove(index)
                     }
                 }
             }
 
-            // Calendar
+            // تقویم
             Rectangle {
-                width: parent.width
-                height: 280
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: Qt.rgba(1, 1, 1, 0.08)
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: nc.side === "right"
+                Layout.preferredHeight: nc.side === "bottom" ? 300 : 0
                 radius: 12
-                color: Qt.rgba(28/255, 28/255, 30/255, 0.8)
-                border.color: Qt.rgba(1,1,1,0.06)
-                border.width: 1
-
-                Column {
+                color: Qt.rgba(0, 0, 0, 0.18)
+                ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 12
-
-                    // Month header — FIX: RowLayout
+                    anchors.margins: 12
+                    spacing: 8
                     RowLayout {
-                        width: parent.width
-                        Text {
-                            id: monthLabel
-                            text: {
-                                const d = new Date()
-                                const j = Theme.jalali(d)
-                                return Theme.jalaliMonths[j.month-1] + " " + Theme.toFa(j.year)
-                            }
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 14
-                            font.weight: Font.Bold
-                        }
-                        Item { Layout.fillWidth: true; height: 1 }
-                        Text {
-                            text: "‹ ›"
-                            color: "#7A8598"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 14
-                        }
+                        Layout.fillWidth: true
+                        Text { text: "مهر ۱۴۰۵"; color: "#F3F4F6"; font.family: "Vazirmatn"; font.pixelSize: 12; font.weight: Font.DemiBold }
+                        Item { Layout.fillWidth: true }
+                        Text { text: "‹  ›"; color: "#4CC2FF"; font.pixelSize: 12 }
                     }
-
-                    // Weekday header
-                    Grid {
-                        width: parent.width
+                    GridLayout {
+                        Layout.fillWidth: true
                         columns: 7
-                        spacing: 2
+                        rowSpacing: 4
+                        columnSpacing: 4
                         Repeater {
-                            model: ["ش","ی","د","س","چ","پ","ج"]
-                            delegate: Text {
-                                width: (parent.width - 12) / 7
-                                horizontalAlignment: Text.AlignHCenter
-                                text: modelData
-                                color: "#7A8598"
-                                font.family: "Vazirmatn"
-                                font.pixelSize: 11
-                            }
+                            model: ["ش", "ی", "د", "س", "چ", "پ", "ج"]
+                            Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: modelData; color: "#6B7280"; font.family: "Vazirmatn"; font.pixelSize: 9 }
                         }
-                    }
-
-                    // Days grid
-                    Grid {
-                        width: parent.width
-                        height: parent.height - 80
-                        columns: 7
-                        spacing: 2
-
                         Repeater {
-                            model: 42
-                            delegate: Rectangle {
-                                width: (parent.width - 12) / 7
-                                height: (parent.height - 10) / 6
+                            model: 35
+                            Rectangle {
+                                readonly property int day: index - 6
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 26
                                 radius: 6
-                                color: {
-                                    const d = new Date()
-                                    const j = Theme.jalali(d)
-                                    const dayNum = index - 4 + 1
-                                    return dayNum === j.day ? "#0099FF" : "transparent"
-                                }
-                                property int dayNum: index - 4 + 1
-                                property bool valid: dayNum > 0 && dayNum <= 31
-
+                                color: day === 20 ? "#0078D4" : "transparent"
                                 Text {
                                     anchors.centerIn: parent
-                                    text: valid ? Theme.toFa(dayNum) : ""
-                                    color: {
-                                        const d = new Date()
-                                        const j = Theme.jalali(d)
-                                        return dayNum === j.day ? "white" : "#C4CAD6"
-                                    }
-                                    font.family: "Vazirmatn"
-                                    font.pixelSize: 11
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Notifications list
-            Controls.ScrollView {
-                width: parent.width
-                height: parent.height - 360
-                clip: true
-
-                ListView {
-                    id: notifList
-                    model: ncRoot.notifications
-                    spacing: 8
-
-                    delegate: Rectangle {
-                        width: notifList.width
-                        height: 72
-                        radius: 10
-                        color: Qt.rgba(28/255, 28/255, 30/255, 0.8)
-                        border.color: Qt.rgba(1,1,1,0.06)
-                        border.width: 1
-
-                        Column {
-                            anchors.fill: parent
-                            anchors.margins: 12
-                            spacing: 4
-
-                            // FIX: RowLayout
-                            RowLayout {
-                                width: parent.width
-                                spacing: 8
-                                Text {
-                                    text: modelData.app || ""
-                                    color: "#0099FF"
+                                    text: parent.day > 0 && parent.day <= 31 ? parent.day : ""
+                                    color: parent.day === 20 ? "#FFFFFF" : "#D1D5DB"
                                     font.family: "Vazirmatn"
                                     font.pixelSize: 10
-                                    font.weight: Font.DemiBold
+                                    font.weight: parent.day === 20 ? Font.Bold : Font.Normal
                                 }
-                                Item { Layout.fillWidth: true; height: 1 }
-                                Text {
-                                    text: modelData.time || ""
-                                    color: "#7A8598"
-                                    font.family: "Vazirmatn"
-                                    font.pixelSize: 10
-                                }
-                            }
-                            Text {
-                                width: parent.width
-                                text: modelData.title
-                                color: "#F0F4FF"
-                                font.family: "Vazirmatn"
-                                font.pixelSize: 12
-                                font.weight: Font.Bold
-                                elide: Text.ElideRight
-                            }
-                            Text {
-                                width: parent.width
-                                text: modelData.body
-                                color: "#C4CAD6"
-                                font.family: "Vazirmatn"
-                                font.pixelSize: 11
-                                elide: Text.ElideRight
                             }
                         }
                     }
@@ -397,7 +182,13 @@ PanelWindow {
         }
     }
 
-    NumberAnimation { id: slideIn; target: fullPanel; property: "x"; duration: 250; easing.type: Easing.OutCubic }
-    NumberAnimation { id: slideOut; target: fullPanel; property: "x"; duration: 250; easing.type: Easing.InCubic }
-    Timer { id: hideTimer; interval: 250; onTriggered: ncRoot.visible = false }
+    // نمونه‌ی اعلان‌ها (بعداً از سرور اعلان می‌آید)
+    ListModel {
+        id: notifModel
+        ListElement { title: "فایل‌ها"; body: "GLM-CONNECTED.txt ذخیره شد"; app: "فایل‌ها"; when: "اکنون" }
+        ListElement { title: "تنظیمات"; body: "به‌روزرسانی آماده است"; app: "تنظیمات"; when: "۵ دقیقه" }
+        ListElement { title: "ترمینال"; body: "کار تمام شد"; app: "ترمینال"; when: "۱۰ دقیقه" }
+    }
+
+    Keys.onEscapePressed: nc.closeRequested()
 }

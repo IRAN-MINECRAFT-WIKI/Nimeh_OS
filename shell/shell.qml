@@ -10,6 +10,8 @@ ShellRoot {
     id: root
 
     property bool startMenuVisible: false
+
+    property string startMode: "start"
     property bool quickSettingsVisible: false
     property bool notificationCenterVisible: false
     property bool widgetsPanelVisible: false
@@ -23,14 +25,37 @@ ShellRoot {
     // ==== پس‌زمینه و آیکون‌های دسکتاپ ====
     Wallpaper {}
     DesktopIcons {
-        onContextMenuRequested: (x, y) => cmPanel.show(x, y)
+        onContextMenuRequested: (x, y) => ctx.show(x, y, { accent: "#4CC2FF", title: "دسکتاپ", items: [{ id: "refresh", label: "بازخوانی" }, { sep: true }, { id: "newfolder", label: "پوشه‌ی جدید" }, { id: "newfile", label: "فایل متنی جدید" }, { sep: true }, { id: "display", label: "تنظیمات نمایش", sub: "Win+I" }, { id: "personalize", label: "شخصی‌سازی" }] }, "desktop")
     }
 
     // ==== تسک‌بار ====
+    ContextOverlay {
+        id: ctx
+        onActivated: (id, owner) => {
+            if (owner.indexOf("app:") === 0 && id === "open")
+                Quickshell.execDetached([owner.substring(4)])
+        }
+    }
+
     NimehTaskbar {
+
+        onQuickSettingsClicked: root.quickSettingsVisible = !root.quickSettingsVisible
+        onAppRightClicked: (name, exec, proc, running, x, y) => ctx.show(x, y, {
+            accent: "#A78BFA",
+            title: name,
+            fromBottom: true,
+            items: [
+                { id: "open",  label: "باز کردن", sub: "Enter" },
+                { id: "pin",   label: "پین به تسک‌بار" },
+                { sep: true },
+                { id: "close", label: "بستن برنامه", sub: "Ctrl+W" }
+            ]
+        }, "app:" + exec)
         onStartClicked: {
-            root.startMenuVisible = !root.startMenuVisible
-            if (root.startMenuVisible) root.quickSettingsVisible = false
+            if (root.startMenuVisible && root.startMode === "start") { root.startMenuVisible = false; return }
+            root.startMode = "start"
+            root.startMenuVisible = true
+            root.quickSettingsVisible = false
         }
         onClockClicked: {
             root.quickSettingsVisible = !root.quickSettingsVisible
@@ -38,12 +63,13 @@ ShellRoot {
         }
         onNotificationsClicked: root.notificationCenterVisible = !root.notificationCenterVisible
         onWidgetsClicked: root.widgetsPanelVisible = !root.widgetsPanelVisible
-        onAppRightClicked: (name, exec, proc, running, x, y) => {
-            if (!name || !exec) return
-            appMenu.show(name, exec, proc, running, x - 120)
-        }
         onAiClicked: Quickshell.execDetached(["nimehos-ai-assistant"])
-        onSearchClicked: root.appLauncherVisible = !root.appLauncherVisible
+        onSearchClicked: {
+            if (root.startMenuVisible && root.startMode === "search") { root.startMenuVisible = false; return }
+            root.startMode = "search"
+            root.startMenuVisible = true
+            root.quickSettingsVisible = false
+        }
     }
 
     // ==== Title Bar (روی پنجره فعال) ====
@@ -65,6 +91,7 @@ ShellRoot {
         WlrLayershell.namespace: "nimeh-startmenu"
         WlrLayershell.layer: WlrLayer.Overlay
         NimehStartMenu {
+            mode: root.startMode
             open: root.startMenuVisible
             onCloseRequested: root.startMenuVisible = false
             onPowerRequested: { root.startMenuVisible = false; root.powerMenuVisible = true }
@@ -90,6 +117,7 @@ ShellRoot {
         WlrLayershell.namespace: "nimeh-quicksettings"
         WlrLayershell.layer: WlrLayer.Overlay
         NimehQuickSettings {
+            open: root.quickSettingsVisible
             onCloseRequested: root.quickSettingsVisible = false
             onAllSettingsRequested: {
                 root.quickSettingsVisible = false
@@ -111,7 +139,7 @@ ShellRoot {
     // ==== OSD و منوها ====
     OSD                 { id: osdPanel }
     AppContextMenu { id: appMenu }
-    DesktopContextMenu  { id: cmPanel;  onCloseRequested: cmPanel.visible = false }
+    DesktopContextMenu  { id: cmPanel; visible: false; onCloseRequested: cmPanel.visible = false }
 
     // ==== توابع کمکی ====
     function notify(app, title, body, urgency) {

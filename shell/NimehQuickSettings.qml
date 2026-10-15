@@ -1,464 +1,289 @@
+// ═════════════════════════════════════════════════════════
+//  NimehQuickSettings — تنظیمات سریع با اجزای مشابه ویندوز ۱۱
+//  اجزا (از بالا به پایین):
+//    ۱. کارت پخش‌کننده‌ی رسانه (برنامه، عنوان، کنترل‌ها)
+//    ۲. شبکه‌ی کاشی‌ها (وای‌فای، بلوتوث، جلوه‌ها، پرواز، صرفه‌جویی، ...)
+//    ۳. اسلایدرهای روشنایی و صدا
+//    ۴. نوار پایین: وضعیت باتری و دکمه‌ی تنظیمات
+//  API سازگار با shell.qml: open، closeRequested، allSettingsRequested
+// ═════════════════════════════════════════════════════════
 import QtQuick
-import QtQuick.Controls as Controls
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 
 Item {
     id: qs
-    anchors.fill: parent
+
+    property bool open: false
+    property bool playing: true
+    property string mediaApp: "Microsoft Edge"
+    property string mediaTitle: "کلاس شروع مهر ریاضی"
+    property string mediaArtist: "biomaze"
+
+    property bool wifi: true
+    property bool bluetooth: true
+    property bool airplane: false
+    property bool nightLight: false
+    property bool energySaver: false
+    property bool liveCaptions: false
+    property bool hotspot: false
+    property bool effects: false
+
+    property real brightness: 0.45
+    property real volume: 0.55
+    property int batteryPercent: 99
 
     signal closeRequested()
     signal allSettingsRequested()
 
-    readonly property string ib: "file://$HOME/NimehOS/shell/icons/png/"
+    width: 364
+    height: panel.implicitHeight
 
-    property bool wifiOn: false
-    property bool bluetoothOn: false
-    property bool airplaneOn: false
-    property bool nightLightOn: false
-    property bool dndOn: false
-    property int brightness: 80
-    property int volume: 50
+    anchors.right: parent ? parent.right : undefined
+    anchors.bottom: parent ? parent.bottom : undefined
+    anchors.bottomMargin: 24
 
-    // چک واقعی وضعیت WiFi و Bluetooth
-    Process {
-        id: wifiCheck
-        command: ["sh","-c","rfkill list wifi 2>/dev/null | grep -q 'blocked: no' && echo on || echo off"]
-        stdout: StdioCollector { onStreamFinished: qs.wifiOn = this.text.trim() === "on" }
-    }
-    Process {
-        id: btCheck
-        command: ["sh","-c","rfkill list bluetooth 2>/dev/null | grep -q 'blocked: no' && echo on || echo off"]
-        stdout: StdioCollector { onStreamFinished: qs.bluetoothOn = this.text.trim() === "on" }
-    }
-    Timer {
-        interval: 3000; running: true; repeat: true; triggeredOnStart: true
-        onTriggered: { wifiCheck.running = true; btCheck.running = true }
+    visible: opacity > 0
+    opacity: open ? 1 : 0
+    scale: open ? 1 : 0.96
+    transformOrigin: Item.Bottom
+    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+    Behavior on scale   { NumberAnimation { duration: 240; easing.type: Easing.OutBack } }
+
+    // ── کاشی: دکمه‌ی روشن/خاموش با فلش اختیاری برای زیرمنو ──
+    component Tile: Rectangle {
+        id: tile
+        property string label: ""
+        property string glyph: ""
+        property bool on: false
+        property bool hasMenu: false
+        signal toggled()
+        signal menuRequested()
+        Layout.fillWidth: true
+        Layout.preferredHeight: 72
+        radius: 14
+        color: tile.on ? Qt.rgba(0.0, 0.47, 0.83, 0.92) : Qt.rgba(1, 1, 1, 0.08)
+        Behavior on color { ColorAnimation { duration: 160 } }
+
+        Column {
+            anchors.centerIn: parent
+            width: parent.width - 16
+            spacing: 6
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: tile.glyph
+                color: "#FFFFFF"
+                font.pixelSize: 17
+            }
+            Text {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                text: tile.label
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
+                color: "#E5E7EB"
+                font.family: "Vazirmatn"
+                font.pixelSize: 10
+                lineHeight: 1.1
+            }
+        }
+        Text {
+            visible: tile.hasMenu
+            anchors.right: parent.right
+            anchors.rightMargin: 8
+            anchors.top: parent.top
+            anchors.topMargin: 6
+            text: "›"
+            color: "#9CA3AF"
+            font.pixelSize: 14
+            MouseArea { anchors.fill: parent; anchors.margins: -8; onClicked: tile.menuRequested() }
+        }
+        MouseArea {
+            anchors.fill: parent
+            anchors.rightMargin: tile.hasMenu ? 20 : 0
+            onClicked: tile.toggled()
+        }
     }
 
-    Timer {
-        id: stateRefresh
-        interval: 800
-        onTriggered: { wifiCheck.running = true; btCheck.running = true }
+    // ── اسلایدر ──
+    component Slider: RowLayout {
+        id: sl
+        property string glyph: ""
+        property real value: 0.5
+        property bool showMenu: false
+        spacing: 12
+        Layout.fillWidth: true
+        Text { text: sl.glyph; color: "#E5E7EB"; font.pixelSize: 14; Layout.preferredWidth: 18 }
+        Rectangle {
+            id: track
+            Layout.fillWidth: true
+            Layout.preferredHeight: 6
+            radius: 3
+            color: Qt.rgba(1, 1, 1, 0.22)
+            Rectangle {
+                width: parent.width * sl.value
+                height: parent.height
+                radius: 3
+                color: "#4CC2FF"
+            }
+            Rectangle {
+                x: track.width * sl.value - 9
+                y: -6
+                width: 18; height: 18; radius: 9
+                color: "#F3F4F6"
+            }
+            MouseArea {
+                anchors.fill: parent
+                anchors.margins: -10
+                onPressed: mouse => sl.value = Math.max(0, Math.min(1, (mouse.x - 10) / track.width))
+                onPositionChanged: mouse => { if (pressed) sl.value = Math.max(0, Math.min(1, (mouse.x - 10) / track.width)) }
+            }
+        }
+        Text {
+            visible: sl.showMenu
+            text: "›"
+            color: "#9CA3AF"
+            font.pixelSize: 16
+            Layout.preferredWidth: 14
+        }
     }
 
     Rectangle {
-        anchors.fill: parent
+        id: panel
+        width: parent.width
+        implicitHeight: col.implicitHeight + 36
         radius: 16
-        color: Qt.rgba(14/255,14/255,18/255,0.96)
-        border.color: Qt.rgba(1,1,1,0.08)
         border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.10)
+        color: Qt.rgba(0.13, 0.14, 0.18, 0.96)
+        clip: true
 
-        Column {
-            anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+        ColumnLayout {
+            id: col
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 16
+            spacing: 14
 
-            // Toggles grid
-            Grid {
-                width: parent.width
-                columns: 2
-                spacing: 8
-
-                // Wifi
-                Rectangle {
-                    width: (parent.width - 8) / 2
-                    height: 56
-                    radius: 10
-                    color: qs.wifiOn ? Qt.rgba(0,153/255,1,0.18) : Qt.rgba(28/255,28/255,30/255,0.6)
-                    border.color: qs.wifiOn ? "#0099FF" : Qt.rgba(1,1,1,0.06)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 10
-                        Image {
-                            source: qs.ib + "ic_fluent_wifi_1_24_regular.png"
-                            width: 18; height: 18
-                            sourceSize: Qt.size(18,18)
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: "وای‌فای"
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            const newState = !qs.wifiOn
-                            qs.wifiOn = newState
-                            Quickshell.execDetached(["sh","-c",
-                                newState ? "nmcli radio wifi on 2>/dev/null || rfkill unblock wifi"
-                                         : "nmcli radio wifi off 2>/dev/null || rfkill block wifi"])
-                            stateRefresh.start()
-                        }
-                    }
-                }
-
-                // Bluetooth
-                Rectangle {
-                    width: (parent.width - 8) / 2
-                    height: 56
-                    radius: 10
-                    color: qs.bluetoothOn ? Qt.rgba(0,153/255,1,0.18) : Qt.rgba(28/255,28/255,30/255,0.6)
-                    border.color: qs.bluetoothOn ? "#0099FF" : Qt.rgba(1,1,1,0.06)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 10
-                        Text {
-                            text: "🔵"
-                            color: "#F0F4FF"
-                            font.pixelSize: 16
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: "بلوتوث"
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            const newState = !qs.bluetoothOn
-                            qs.bluetoothOn = newState
-                            Quickshell.execDetached(["sh","-c",
-                                newState ? "bluetoothctl power on 2>/dev/null || rfkill unblock bluetooth"
-                                         : "bluetoothctl power off 2>/dev/null || rfkill block bluetooth"])
-                            stateRefresh.start()
-                        }
-                    }
-                }
-
-                // Airplane
-                Rectangle {
-                    width: (parent.width - 8) / 2
-                    height: 56
-                    radius: 10
-                    color: qs.airplaneOn ? Qt.rgba(245/255,158/255,11/255,0.18) : Qt.rgba(28/255,28/255,30/255,0.6)
-                    border.color: qs.airplaneOn ? "#F59E0B" : Qt.rgba(1,1,1,0.06)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 10
-                        Text {
-                            text: "✈"
-                            color: "#F0F4FF"
-                            font.pixelSize: 16
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: "هواپیما"
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            const newState = !qs.airplaneOn
-                            qs.airplaneOn = newState
-                            // FIX: Airplane mode now actually controls radios.
-                            // When ON: block all radios and sync the wifi/bluetooth
-                            // toggles so the UI stays consistent.
-                            // When OFF: unblock everything and re-enable wifi/wwan.
-                            if (newState) {
-                                Quickshell.execDetached(["sh","-c",
-                                    "nmcli radio wifi off; nmcli radio wwan off; rfkill block all"])
-                                qs.wifiOn = false
-                                qs.bluetoothOn = false
-                            } else {
-                                Quickshell.execDetached(["sh","-c",
-                                    "rfkill unblock all; nmcli radio wifi on; nmcli radio wwan on"])
-                            }
-                            stateRefresh.start()
-                        }
-                    }
-                }
-
-                // Night light
-                Rectangle {
-                    width: (parent.width - 8) / 2
-                    height: 56
-                    radius: 10
-                    color: qs.nightLightOn ? Qt.rgba(245/255,158/255,11/255,0.18) : Qt.rgba(28/255,28/255,30/255,0.6)
-                    border.color: qs.nightLightOn ? "#F59E0B" : Qt.rgba(1,1,1,0.06)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 10
-                        Text {
-                            text: "🌙"
-                            color: "#F0F4FF"
-                            font.pixelSize: 16
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: "نور شب"
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            const newState = !qs.nightLightOn
-                            qs.nightLightOn = newState
-                            // FIX: Night Light now actually drives wlsunset.
-                            // ON  -> start wlsunset with a warm 3500K night temperature.
-                            // OFF -> kill any running wlsunset so the screen returns to normal.
-                            Quickshell.execDetached(["sh","-c",
-                                newState
-                                  ? "pkill wlsunset 2>/dev/null; (wlsunset -t 3500 -T 6500 >/dev/null 2>&1 &)"
-                                  : "pkill wlsunset 2>/dev/null"])
-                        }
-                    }
-                }
-
-                // Do Not Disturb
-                Rectangle {
-                    width: (parent.width - 8) / 2
-                    height: 56
-                    radius: 10
-                    color: qs.dndOn ? Qt.rgba(167/255,139/255,250/255,0.18) : Qt.rgba(28/255,28/255,30/255,0.6)
-                    border.color: qs.dndOn ? "#A78BFA" : Qt.rgba(1,1,1,0.06)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 10
-                        Text {
-                            text: "🔕"
-                            color: "#F0F4FF"
-                            font.pixelSize: 16
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: "مزاحم نشو"
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            const newState = !qs.dndOn
-                            qs.dndOn = newState
-                            // FIX: DND now actually pauses the notification daemon.
-                            // Supports dunstctl (primary) and makoctl (fallback).
-                            const arg = newState ? "true" : "false"
-                            Quickshell.execDetached(["sh","-c",
-                                "command -v dunstctl >/dev/null 2>&1 && dunstctl set-paused " + arg +
-                                " || (command -v makoctl >/dev/null 2>&1 && makoctl set-paused " + arg + ") || true"])
-                        }
-                    }
-                }
-            }
-
-            // Sliders
+            // ── ۱. کارت رسانه ──
             Rectangle {
-                width: parent.width
-                height: 80
-                radius: 10
-                color: Qt.rgba(28/255,28/255,30/255,0.6)
-                border.color: Qt.rgba(1,1,1,0.06)
-                border.width: 1
-
-                Column {
+                visible: qs.mediaTitle !== ""
+                Layout.fillWidth: true
+                Layout.preferredHeight: 110
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.06)
+                ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 12
                     spacing: 8
-
-                    // Brightness
-                    Row {
-                        width: parent.width
-                        spacing: 10
-                        Image {
-                            source: qs.ib + "ic_fluent_brightness_high_24_regular.png"
-                            width: 16; height: 16
-                            sourceSize: Qt.size(16,16)
-                            anchors.verticalCenter: parent.verticalCenter
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Rectangle { width: 16; height: 16; radius: 4; color: "#22D3AE" }
+                        Text {
+                            text: qs.mediaApp
+                            color: "#D1D5DB"
+                            font.family: "Inter"
+                            font.pixelSize: 11
                         }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
                         Rectangle {
-                            width: parent.width - 30
-                            height: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            radius: 3
-                            color: Qt.rgba(1,1,1,0.08)
-                            Rectangle {
-                                width: parent.width * (qs.brightness / 100)
-                                height: parent.height
-                                radius: 3
-                                color: "#F59E0B"
+                            Layout.preferredWidth: 42
+                            Layout.preferredHeight: 42
+                            radius: 6
+                            color: Qt.rgba(1, 1, 1, 0.12)
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            Text {
+                                Layout.fillWidth: true
+                                text: qs.mediaTitle
+                                color: "#F3F4F6"
+                                font.family: "Vazirmatn"
+                                font.pixelSize: 12
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
                             }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    qs.brightness = Math.round((mouse.x / parent.width) * 100)
-                                    Quickshell.execDetached(["sh","-c","brightnessctl s " + qs.brightness + "%"])
-                                }
+                            Text {
+                                Layout.fillWidth: true
+                                text: qs.mediaArtist
+                                color: "#9CA3AF"
+                                font.family: "Inter"
+                                font.pixelSize: 10
+                                elide: Text.ElideRight
                             }
                         }
                     }
-
-                    // Volume
-                    Row {
-                        width: parent.width
-                        spacing: 10
-                        Image {
-                            source: qs.ib + "ic_fluent_speaker_2_24_regular.png"
-                            width: 16; height: 16
-                            sourceSize: Qt.size(16,16)
-                            anchors.verticalCenter: parent.verticalCenter
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 26
+                        Text { text: "⏮"; color: "#E5E7EB"; font.pixelSize: 16 }
+                        Text {
+                            text: qs.playing ? "⏸" : "▶"
+                            color: "#FFFFFF"
+                            font.pixelSize: 20
+                            MouseArea { anchors.fill: parent; anchors.margins: -8; onClicked: qs.playing = !qs.playing }
                         }
-                        Rectangle {
-                            width: parent.width - 30
-                            height: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            radius: 3
-                            color: Qt.rgba(1,1,1,0.08)
-                            Rectangle {
-                                width: parent.width * (qs.volume / 100)
-                                height: parent.height
-                                radius: 3
-                                color: "#0099FF"
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    qs.volume = Math.round((mouse.x / parent.width) * 100)
-                                    Quickshell.execDetached(["sh","-c","wpctl set-volume @DEFAULT_AUDIO_SINK@ " + (qs.volume/100)])
-                                }
-                            }
-                        }
+                        Text { text: "⏭"; color: "#E5E7EB"; font.pixelSize: 16 }
                     }
                 }
             }
 
-            // Media controls
-            MediaControls {
-                width: parent.width
+            // ── ۲. شبکه‌ی کاشی‌ها ──
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 3
+                rowSpacing: 10
+                columnSpacing: 10
+                Tile { label: "وای‌فای";        glyph: "⌁";  on: qs.wifi;        hasMenu: true; onToggled: qs.wifi = !qs.wifi }
+                Tile { label: "بلوتوث";         glyph: "ᛒ";  on: qs.bluetooth;   hasMenu: true; onToggled: qs.bluetooth = !qs.bluetooth }
+                Tile { label: "جلوه‌ها";         glyph: "✦";  on: qs.effects;     hasMenu: true; onToggled: qs.effects = !qs.effects }
+                Tile { label: "حالت پرواز";     glyph: "✈";  on: qs.airplane;    onToggled: qs.airplane = !qs.airplane }
+                Tile { label: "صرفه‌جویی انرژی"; glyph: "⚡"; on: qs.energySaver;  onToggled: qs.energySaver = !qs.energySaver }
+                Tile { label: "دسترسی‌پذیری";   glyph: "⚲";  on: false;          hasMenu: true; onToggled: {} }
+                Tile { label: "زیرنویس زنده";   glyph: "▭";  on: qs.liveCaptions; onToggled: qs.liveCaptions = !qs.liveCaptions }
+                Tile { label: "روشنایی شب";     glyph: "☾";  on: qs.nightLight;  onToggled: qs.nightLight = !qs.nightLight }
+                Tile { label: "اتصال موبایل";   glyph: "⊚";  on: qs.hotspot;     onToggled: qs.hotspot = !qs.hotspot }
             }
 
-            // Battery info
+            // ── ۳. اسلایدرها ──
             Rectangle {
-                width: parent.width
-                height: 50
-                radius: 10
-                color: Qt.rgba(28/255,28/255,30/255,0.6)
-                border.color: Qt.rgba(1,1,1,0.06)
-                border.width: 1
-
-                Row {
-                    anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 10
-
-                    Image {
-                        source: qs.ib + "ic_fluent_battery_8_24_regular.png"
-                        width: 18; height: 18
-                        sourceSize: Qt.size(18,18)
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        Text {
-                            text: "۸۵٪"
-                            color: "#F0F4FF"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 12
-                            font.weight: Font.DemiBold
-                        }
-                        Text {
-                            text: "۳ ساعت و ۲۰ دقیقه باقی‌مانده"
-                            color: "#7A8598"
-                            font.family: "Vazirmatn"
-                            font.pixelSize: 10
-                        }
-                    }
-                    Item { width: 1; height: 1; Layout.fillWidth: true }
-                    Text {
-                        text: "⚡ برق متصل"
-                        color: "#22D3AE"
-                        font.family: "Vazirmatn"
-                        font.pixelSize: 11
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: Qt.rgba(1, 1, 1, 0.08)
             }
+            Slider { glyph: "☼"; value: qs.brightness; onValueChanged: qs.brightness = value }
+            Slider { glyph: "♪"; value: qs.volume;     showMenu: true; onValueChanged: qs.volume = value }
 
-            // All settings button
+            // ── ۴. نوار پایین: باتری و تنظیمات ──
             Rectangle {
-                width: parent.width
-                height: 38
-                radius: 19
-                color: allMa.containsMouse ? Qt.rgba(0,153/255,1,0.18) : Qt.rgba(1,1,1,0.04)
-                border.color: Qt.rgba(1,1,1,0.08)
-                border.width: 1
-                Behavior on color { ColorAnimation { duration: 150 } }
-
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: Qt.rgba(1, 1, 1, 0.08)
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
                 Text {
-                    anchors.centerIn: parent
-                    text: "همه تنظیمات"
-                    color: "#F0F4FF"
+                    text: "▮ " + qs.batteryPercent + "٪"
+                    color: "#D1D5DB"
                     font.family: "Vazirmatn"
-                    font.pixelSize: 12
+                    font.pixelSize: 11
                 }
-
-                MouseArea {
-                    id: allMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: qs.allSettingsRequested()
+                Item { Layout.fillWidth: true }
+                Text {
+                    text: "⚙"
+                    color: "#E5E7EB"
+                    font.pixelSize: 16
+                    MouseArea { anchors.fill: parent; anchors.margins: -8; onClicked: qs.allSettingsRequested() }
                 }
             }
         }
     }
 
-    // Close on outside click
-    MouseArea {
-        anchors.fill: parent
-        z: -1
-        onClicked: qs.closeRequested()
-    }
+    Keys.onEscapePressed: qs.closeRequested()
 }
