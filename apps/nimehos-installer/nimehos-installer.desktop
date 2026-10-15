@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=NimehOS Installer
+Name[fa]=نصب‌کننده NimehOS
+Comment=Install .flatpak, .AppImage, .deb, .rpm packages
+Comment[fa]=نصب بسته‌های flatpak, AppImage, deb, rpm
+Exec=nimehos-installer %f
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+MimeType=application/vnd.flatpak;application/x-appimage;application/vnd.debian.binary-package;application/x-rpm;
+Keywords=install;package;deb;rpm;flatpak;appimage;
