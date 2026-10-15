@@ -8,6 +8,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Services.Pipewire  // سرویس صدا (Pipewire) برای خواندن خودکار volume هنگام تغییر
 
 PanelWindow {
     id: osd
@@ -23,6 +24,21 @@ PanelWindow {
         muted = isMuted
         shownNow = true
         hideTimer.restart()
+    }
+
+    // ── خواندن صدای فعلی از Pipewire و نمایش OSD (بدون نیاز به فراخوانی خارجی) ──
+    function showVolume() {
+        const v = Pipewire.defaultAudioSink
+        if (v && v.audio) {
+            osd.show("volume", Math.round(v.audio.volume * 100), v.audio.muted)
+        }
+    }
+
+    // ── نمایش خودکار OSD هنگام تغییر volume یا mute (کلیدهای صدا در hyprland.conf) ──
+    Connections {
+        target: Pipewire.defaultAudioSink?.audio ?? null
+        function onVolumeChanged() { osd.showVolume() }
+        function onMutedChanged() { osd.showVolume() }
     }
 
     anchors { bottom: true; left: true; right: true }

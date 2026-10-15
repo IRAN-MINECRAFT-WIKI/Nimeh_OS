@@ -9,6 +9,8 @@
 // ═════════════════════════════════════════════════════════
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Services.Pipewire  // سرویس صدا (Pipewire) برای خواندن/نوشتن volume و mute
+import Quickshell.Services.UPower    // سرویس باتری (UPower) برای خواندن درصد و وضعیت شارژ
 
 Item {
     id: qs
@@ -29,8 +31,15 @@ Item {
     property bool effects: false
 
     property real brightness: 0.45
-    property real volume: 0.55
-    property int batteryPercent: 99
+
+    // ── صدا: از Pipewire.defaultAudioSink خوانده می‌شود (به‌جای مقدار ثابت ۰.۵۵) ──
+    readonly property var audioSink: Pipewire.defaultAudioSink
+    readonly property real volume: audioSink?.audio?.volume ?? 0
+    readonly property bool muted: audioSink?.audio?.muted ?? false
+
+    // ── باتری: از UPower.displayDevice خوانده می‌شود (به‌جای مقدار ثابت ۹۹) ──
+    readonly property bool hasBattery: UPower.displayDevice !== null
+    readonly property int batteryPercent: hasBattery ? Math.round(UPower.displayDevice.percentage * 100) : -1
 
     signal closeRequested()
     signal allSettingsRequested()
@@ -257,7 +266,13 @@ Item {
                 color: Qt.rgba(1, 1, 1, 0.08)
             }
             Slider { glyph: "☼"; value: qs.brightness; onValueChanged: qs.brightness = value }
-            Slider { glyph: "♪"; value: qs.volume;     showMenu: true; onValueChanged: qs.volume = value }
+            // اسلایدر صدا مستقیماً audioSink.audio.volume را در Pipewire تنظیم می‌کند
+            Slider {
+                glyph: qs.muted ? "🔇" : "♪"
+                value: qs.muted ? 0 : qs.volume
+                showMenu: true
+                onValueChanged: { if (qs.audioSink) qs.audioSink.audio.volume = value }
+            }
 
             // ── ۴. نوار پایین: باتری و تنظیمات ──
             Rectangle {
@@ -268,8 +283,9 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
+                // نمایش باتری: اگر باتری یافت نشد (batteryPercent < 0) «نامشخص» نشان بده
                 Text {
-                    text: "▮ " + qs.batteryPercent + "٪"
+                    text: qs.batteryPercent < 0 ? "▮ نامشخص" : ("▮ " + qs.batteryPercent + "٪")
                     color: "#D1D5DB"
                     font.family: "Vazirmatn"
                     font.pixelSize: 11

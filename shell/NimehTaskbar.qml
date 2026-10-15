@@ -6,6 +6,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Services.Pipewire  // سرویس صدا (Pipewire) برای آیکون mute و toggle
+import Quickshell.Services.UPower    // سرویس باتری (UPower) برای نمایش درصد باتری
 
 PanelWindow {
     id: tb
@@ -25,6 +27,14 @@ PanelWindow {
     readonly property int barH: 56
 
     readonly property int barRadius: 16
+
+    // ── صدا: از Pipewire.defaultAudioSink خوانده می‌شود ──
+    readonly property var audioSink: Pipewire.defaultAudioSink
+    readonly property bool audioMuted: audioSink?.audio?.muted ?? false
+
+    // ── باتری: از UPower.displayDevice خوانده می‌شود ──
+    readonly property bool hasBattery: UPower.displayDevice !== null
+    readonly property int batteryPercent: hasBattery ? Math.round(UPower.displayDevice.percentage * 100) : -1
 
     anchors { bottom: true; left: true; right: true }
     margins.bottom: 14
@@ -281,6 +291,38 @@ PanelWindow {
                     hoverEnabled: true
                     onClicked: tb.quickSettingsClicked()
                 }
+            }
+
+            // ── آیکون صدا: کلیک برای toggle mute (Pipewire) ──
+            Rectangle {
+                width: 32; height: 32; radius: 8
+                color: volArea.containsMouse ? Qt.rgba(1,1,1,0.1) : "transparent"
+                Text {
+                    anchors.centerIn: parent
+                    text: audioMuted ? "🔇" : "🔊"
+                    font.pixelSize: 14
+                }
+                MouseArea {
+                    id: volArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: { if (audioSink) audioSink.audio.muted = !audioSink.audio.muted }
+                }
+            }
+
+            // ── آیکون باتری: نمایش درصد (UPower) یا «—» در صورت نبود باتری ──
+            Rectangle {
+                width: 32; height: 32; radius: 8
+                visible: hasBattery
+                color: batArea.containsMouse ? Qt.rgba(1,1,1,0.1) : "transparent"
+                Text {
+                    anchors.centerIn: parent
+                    text: hasBattery ? (batteryPercent + "٪") : "—"
+                    font.pixelSize: 10
+                    color: Theme.text
+                }
+                MouseArea { id: batArea; anchors.fill: parent; hoverEnabled: true }
             }
 
             // ── ساعت و تاریخ (کلیک = مرکز اعلان و تقویم) ──
