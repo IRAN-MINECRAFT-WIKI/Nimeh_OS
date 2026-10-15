@@ -8,6 +8,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Services.Notifications  // سرویس اعلان داخلی Quickshell
 
 PanelWindow {
     id: nc
@@ -68,16 +69,31 @@ PanelWindow {
                     font.weight: Font.DemiBold
                 }
                 Item { Layout.fillWidth: true }
+
+                // کلید «مزاحم نشو» (DND) — وضعیت از Notifications.dnd خوانده می‌شود
+                Text {
+                    text: nc.dnd ? "🔕 مزاحم نشو: روشن" : "🔔 مزاحم نشو: خاموش"
+                    color: nc.dnd ? "#F59E0B" : "#4CC2FF"
+                    font.family: "Vazirmatn"
+                    font.pixelSize: 11
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        // تغییر وضعیت DND در سرویس Notifications
+                        onClicked: Notifications.dnd = !Notifications.dnd
+                    }
+                }
+
                 Text {
                     text: "پاک کردن همه"
                     color: "#4CC2FF"
                     font.family: "Vazirmatn"
                     font.pixelSize: 11
-                    MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: notifModel.clear() }
+                    MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: nc.clearAll() }
                 }
             }
 
-            // فهرست اعلان‌ها
+            // فهرست اعلان‌های واقعی — منبع داده‌ی Notifications.tray
             ListView {
                 id: list
                 Layout.fillWidth: true
@@ -85,16 +101,17 @@ PanelWindow {
                 Layout.preferredHeight: nc.side === "right" ? 260 : 0
                 clip: true
                 spacing: 8
-                model: notifModel
+                model: nc.notifications
                 delegate: Rectangle {
-                    required property string title
-                    required property string body
-                    required property string app
-                    required property string when
+                    // هر آیتم یک شیء Notification از Quickshell است
+                    required property var modelData
                     width: list.width
                     height: 68
                     radius: 12
-                    color: nHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.06)
+                    // رنگ زمینه بر اساس urgency: critical → قرمز روشن‌تر
+                    color: nHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10)
+                          : (modelData.urgency === "critical" ? Qt.rgba(0.8, 0.2, 0.2, 0.18)
+                          : Qt.rgba(1, 1, 1, 0.06))
                     Behavior on color { ColorAnimation { duration: 140 } }
                     RowLayout {
                         anchors.fill: parent
@@ -108,22 +125,35 @@ PanelWindow {
                                 GradientStop { position: 0.0; color: "#0078D4" }
                                 GradientStop { position: 1.0; color: "#4CC2FF" }
                             }
-                            Text { anchors.centerIn: parent; text: app.charAt(0); color: "white"; font.pixelSize: 13; font.weight: Font.Bold }
+                            // حرف اول نام برنامه به‌عنوان آواتار موقت
+                            Text { anchors.centerIn: parent; text: (modelData.appName || "?").charAt(0); color: "white"; font.pixelSize: 13; font.weight: Font.Bold }
                         }
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 2
-                            Text { Layout.fillWidth: true; text: title; color: "#F3F4F6"; font.family: "Vazirmatn"; font.pixelSize: 11; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                            Text { Layout.fillWidth: true; text: body; color: "#9CA3AF"; font.family: "Vazirmatn"; font.pixelSize: 10; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: modelData.summary; color: "#F3F4F6"; font.family: "Vazirmatn"; font.pixelSize: 11; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: modelData.body; color: "#9CA3AF"; font.family: "Vazirmatn"; font.pixelSize: 10; elide: Text.ElideRight }
                         }
-                        Text { text: when; color: "#6B7280"; font.family: "Vazirmatn"; font.pixelSize: 9; Layout.alignment: Qt.AlignTop }
+                        // modelData.time یک شیء Date است — با Qt.formatTime به رشته تبدیل می‌شود
+                        Text { text: modelData.time ? Qt.formatTime(modelData.time, "hh:mm") : ""; color: "#6B7280"; font.family: "Vazirmatn"; font.pixelSize: 9; Layout.alignment: Qt.AlignTop }
                     }
                     MouseArea {
                         id: nHover
                         anchors.fill: parent
                         hoverEnabled: true
-                        onClicked: notifModel.remove(index)
+                        // بستن اعلان از طریق API داخلی Notification
+                        onClicked: modelData.close()
                     }
+                }
+
+                // پیام خالی‌بودن وقتی هیچ اعلانی وجود ندارد
+                Text {
+                    anchors.centerIn: parent
+                    visible: list.count === 0
+                    text: "اعلانی وجود ندارد"
+                    color: "#6B7280"
+                    font.family: "Vazirmatn"
+                    font.pixelSize: 11
                 }
             }
 
@@ -182,12 +212,17 @@ PanelWindow {
         }
     }
 
-    // نمونه‌ی اعلان‌ها (بعداً از سرور اعلان می‌آید)
-    ListModel {
-        id: notifModel
-        ListElement { title: "فایل‌ها"; body: "GLM-CONNECTED.txt ذخیره شد"; app: "فایل‌ها"; when: "اکنون" }
-        ListElement { title: "تنظیمات"; body: "به‌روزرسانی آماده است"; app: "تنظیمات"; when: "۵ دقیقه" }
-        ListElement { title: "ترمینال"; body: "کار تمام شد"; app: "ترمینال"; when: "۱۰ دقیقه" }
+    // ==== منبع داده‌ی اعلان‌ها: سرویس داخلی Quickshell ====
+    // notifications → لیست زنده‌ی اعلان‌های دریافت‌شده از D-Bus
+    // dnd           → وضعیت «مزاحم نشو» (خواندنی/نوشتنی)
+    readonly property var notifications: Notifications.tray.values
+    readonly property bool dnd: Notifications.dnd
+
+    // پاک‌کردن همه‌ی اعلان‌ها با بستن تک‌تک آن‌ها از طریق API داخلی
+    function clearAll() {
+        for (const n of Notifications.tray.values) {
+            n.close()
+        }
     }
 
     Keys.onEscapePressed: nc.closeRequested()

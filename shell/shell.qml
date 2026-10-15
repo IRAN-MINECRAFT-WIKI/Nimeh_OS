@@ -142,22 +142,16 @@ ShellRoot {
     DesktopContextMenu  { id: cmPanel; visible: false; onCloseRequested: cmPanel.visible = false }
 
     // ==== توابع کمکی ====
+    // notify() پیش‌تر یک اعلان نمونه push می‌کرد؛ اکنون اعلان‌ها از سرویس
+    // داخلی Quickshell.Services.Notifications می‌آیند و این تابع دیگر کاری
+    // انجام نمی‌دهد (no-op). امضا برای سازگاری با کد فراخوان نگه داشته شد.
     function notify(app, title, body, urgency) {
-        ncPanel.push({
-            app: app || "NimehOS", title: title || "", body: body || "",
-            time: "اکنون", urgency: urgency || "normal"
-        })
+        // no-op: اعلان‌ها مستقیماً از طریق D-Bus به Notifications سرازیم می‌شوند
     }
     function showOSD(type, value, muted) { osdPanel.show(type, value, muted) }
 
-    Component.onCompleted: {
-        ncPanel.push({
-            app: "NimehOS",
-            title: "به NimehOS خوش آمدید",
-            body: "دسکتاپ آماده است. کلید Super را برای منوی استارت فشار دهید.",
-            time: "اکنون", urgency: "normal"
-        })
-    }
+    // Component.onCompleted پیش‌تر یک اعلان «خوش‌آمدید» push می‌کرد که دیگر
+    // لازم نیست. اعلان‌های واقعی از برنامه‌ها از طریق D-Bus می‌رسند.
 
     // ==== IPC Handlers ====
     IpcHandler {
