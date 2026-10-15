@@ -6,7 +6,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 
 PanelWindow {
     id: lockRoot
@@ -18,22 +17,15 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-    property bool shownNow: false
     property date now: new Date()
     signal closeRequested()
 
-    // بررسی اینکه hyprlock در حال اجراست یا نه
-    Process {
-        id: lockCheck
-        command: ["sh", "-c", "pgrep -x hyprlock >/dev/null && echo LOCKED || echo UNLOCKED"]
-        stdout: StdioCollector {
-            onStreamFinished: lockRoot.shownNow = (this.text.trim() === "LOCKED")
-        }
-    }
-    Timer {
-        interval: 5000; running: true; repeat: true; triggeredOnStart: true
-        onTriggered: lockCheck.running = true
-    }
+    // --- نمایش بر اساس visible، بدون pgrep و Process ---
+    // این پنجره توسط keybind هابلند (loginctl lock-session) نمایش داده می‌شود؛
+    // polling پنج‌ثانیه‌ای pgrep hyprlock حذف شد. shownNow مستقیماً به visible بسته شده است.
+    property bool shownNow: lockRoot.visible
+
+    // تایمر ساعت فقط در زمان نمایش اجرا می‌شود (بدون تغییر)
     Timer {
         interval: 1000; running: lockRoot.visible; repeat: true
         onTriggered: lockRoot.now = new Date()

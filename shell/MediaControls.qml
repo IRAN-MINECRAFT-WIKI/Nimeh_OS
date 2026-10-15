@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls as Controls
-import Quickshell.Io
+import Quickshell.Services.Mpris
 import QtQuick.Layouts
 
 // ============================================================
@@ -18,49 +18,17 @@ Rectangle {
     border.width: 1
     visible: hasPlayer
 
-    property bool hasPlayer: false
-    property string trackTitle: ""
-    property string trackArtist: ""
-    property string trackArt: ""
-    property bool isPlaying: false
-    property double position: 0
-    property double length: 0
-
-    function refresh() { mprisProc.running = true }
-
-    Process {
-        id: mprisProc
-        command: ["sh","-c","playerctl metadata --format '{{title}}|||{{artist}}|||{{mpris:artUrl}}|||{{status}}|||{{position}}|||{{mpris:length}}' 2>/dev/null"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const txt = this.text.trim()
-                if (!txt || txt === "") {
-                    mcRoot.hasPlayer = false
-                    return
-                }
-                const parts = txt.split("|||")
-                if (parts.length < 4) {
-                    mcRoot.hasPlayer = false
-                    return
-                }
-                mcRoot.trackTitle = parts[0] || ""
-                mcRoot.trackArtist = parts[1] || ""
-                mcRoot.trackArt = parts[2] || ""
-                mcRoot.isPlaying = parts[3] === "Playing"
-                mcRoot.position = parseFloat(parts[4]) || 0
-                mcRoot.length = parseFloat(parts[5]) || 0
-                mcRoot.hasPlayer = true
-            }
-        }
-    }
-
-    Timer {
-        interval: 2000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: mcRoot.refresh()
-    }
+    // --- اتصال مستقیم به MPRIS به جای playerctl + Process ---
+    // اتصال رخداد‌محور است؛ Timer دو ثانیه‌ای و فراخوانی playerctl حذف شدند.
+    // currentPlayer نخستین بازیکن موجود از Mpris.players است.
+    property var currentPlayer: Mpris.players.values[0] || null
+    property bool hasPlayer: currentPlayer !== null
+    property string trackTitle: currentPlayer?.metadata?.title ?? ""
+    property string trackArtist: currentPlayer?.metadata?.artist ?? ""
+    property string trackArt: currentPlayer?.metadata?.artUrl ?? ""
+    property bool isPlaying: currentPlayer?.playbackState === MprisPlayer.Playing
+    property double position: currentPlayer?.position ?? 0
+    property double length: currentPlayer?.metadata?.length ?? 0
 
     Row {
         anchors.fill: parent
@@ -138,7 +106,7 @@ Rectangle {
                     }
                     MouseArea {
                         id: prevMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: { Quickshell.execDetached(["playerctl","previous"]); mcRoot.refresh() }
+                        onClicked: mcRoot.currentPlayer?.previous()
                     }
                 }
 
@@ -158,10 +126,7 @@ Rectangle {
                     }
                     MouseArea {
                         id: playMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            Quickshell.execDetached(["playerctl","play-pause"])
-                            mcRoot.refresh()
-                        }
+                        onClicked: mcRoot.currentPlayer?.playPause()
                     }
                 }
 
@@ -179,7 +144,7 @@ Rectangle {
                     }
                     MouseArea {
                         id: nextMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: { Quickshell.execDetached(["playerctl","next"]); mcRoot.refresh() }
+                        onClicked: mcRoot.currentPlayer?.next()
                     }
                 }
 
