@@ -299,7 +299,7 @@ PanelWindow {
                 color: volArea.containsMouse ? Qt.rgba(1,1,1,0.1) : "transparent"
                 Text {
                     anchors.centerIn: parent
-                    text: audioMuted ? "🔇" : "🔊"
+                    text: audioMuted ? "×" : "♪"
                     font.pixelSize: 14
                 }
                 MouseArea {

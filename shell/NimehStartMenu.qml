@@ -8,7 +8,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 
 Item {
     id: sm
@@ -406,27 +405,21 @@ Item {
         }
     }
 
-    // ─── لیست برنامه‌ها (اسکن .desktop) ───
-    Process {
-        id: appScan
-        command: ["sh", "-c",
-            "for f in /usr/share/applications/*.desktop $HOME/.local/share/applications/*.desktop; do " +
-            "[ -f \"$f\" ] || continue; " +
-            "grep -q 'NoDisplay=true' \"$f\" && continue; " +
-            "name=$(grep -m1 '^Name=' \"$f\" | cut -d= -f2); " +
-            "[ -z \"$name\" ] && continue; " +
-            "exe=$(grep -m1 '^Exec=' \"$f\" | cut -d= -f2 | sed 's/ %.*//'); " +
-            "echo \"$name|$exe\"; done | sort -u"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const list = []
-                this.text.trim().split("\n").forEach(l => {
-                    const p = l.split("|")
-                    if (p.length >= 2 && p[0] && p[1]) list.push({ name: p[0], exec: p[1] })
-                })
-                sm.allApps = list
-            }
-        }
-    }
-    Component.onCompleted: appScan.running = true
+    // ─── لیست برنامه‌ها (قرضی: hardcoded تا ساختن سرویس پایتون) ───
+    // TODO: جایگزینی با سرویس nimehosd (apps provider)
+    readonly property var _defaultApps: [
+        { name: "Terminal", exec: "foot" },
+        { name: "File Manager", exec: "thunar" },
+        { name: "Web Browser", exec: "firefox" },
+        { name: "Text Editor", exec: "kate" },
+        { name: "Settings", exec: "nimehos-settings" },
+        { name: "Calculator", exec: "qalculate-gtk" },
+        { name: "Image Viewer", exec: "feh" },
+        { name: "Music Player", exec: "elisa" },
+        { name: "Archive Manager", exec: "ark" },
+        { name: "System Monitor", exec: "htop" },
+        { name: "Screenshot", exec: "grim" },
+        { name: "Package Manager", exec: "synaptic" }
+    ]
+    Component.onCompleted: sm.allApps = sm._defaultApps
 }

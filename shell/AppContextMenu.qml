@@ -124,7 +124,7 @@ PanelWindow {
 
             MenuItem {
                 label: "نمایش محل فایل"
-                icon: "📁"
+                icon: "[F]"
                 visible: ctxRoot.appExec !== ""
                 onClicked: {
                     if (ctxRoot.appExec)

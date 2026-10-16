@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls as Controls
 import Quickshell
-import Quickshell.Io
 import QtQuick.Layouts
 
 // ============================================================

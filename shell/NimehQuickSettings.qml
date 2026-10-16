@@ -265,10 +265,10 @@ Item {
                 Layout.preferredHeight: 1
                 color: Qt.rgba(1, 1, 1, 0.08)
             }
-            Slider { glyph: "☼"; value: qs.brightness; onValueChanged: qs.brightness = value }
+            Slider { glyph: "☀"; value: qs.brightness; onValueChanged: qs.brightness = value }
             // اسلایدر صدا مستقیماً audioSink.audio.volume را در Pipewire تنظیم می‌کند
             Slider {
-                glyph: qs.muted ? "🔇" : "♪"
+                glyph: qs.muted ? "×" : "♪"
                 value: qs.muted ? 0 : qs.volume
                 showMenu: true
                 onValueChanged: { if (qs.audioSink) qs.audioSink.audio.volume = value }

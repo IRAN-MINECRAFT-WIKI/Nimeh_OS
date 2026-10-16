@@ -72,7 +72,7 @@ PanelWindow {
 
                 // کلید «مزاحم نشو» (DND) — وضعیت از Notifications.dnd خوانده می‌شود
                 Text {
-                    text: nc.dnd ? "🔕 مزاحم نشو: روشن" : "🔔 مزاحم نشو: خاموش"
+                    text: nc.dnd ? "× مزاحم نشو: روشن" : "♪ مزاحم نشو: خاموش"
                     color: nc.dnd ? "#F59E0B" : "#4CC2FF"
                     font.family: "Vazirmatn"
                     font.pixelSize: 11
@@ -80,7 +80,7 @@ PanelWindow {
                         anchors.fill: parent
                         anchors.margins: -6
                         // تغییر وضعیت DND در سرویس Notifications
-                        onClicked: Notifications.dnd = !Notifications.dnd
+                        onClicked: nc.dnd = !nc.dnd
                     }
                 }
 
@@ -215,14 +215,36 @@ PanelWindow {
     // ==== منبع داده‌ی اعلان‌ها: سرویس داخلی Quickshell ====
     // notifications → لیست زنده‌ی اعلان‌های دریافت‌شده از D-Bus
     // dnd           → وضعیت «مزاحم نشو» (خواندنی/نوشتنی)
-    readonly property var notifications: Notifications.tray.values
-    readonly property bool dnd: Notifications.dnd
+    // منبع داده: NotificationServer داخلی Quickshell
+    // اعلان‌ها از D-Bus (org.freedesktop.Notifications) دریافت می‌شن
+    property var notifications: []
+    property bool dnd: false
 
-    // پاک‌کردن همه‌ی اعلان‌ها با بستن تک‌تک آن‌ها از طریق API داخلی
-    function clearAll() {
-        for (const n of Notifications.tray.values) {
-            n.close()
+    NotificationServer {
+        id: notifServer
+        actionsSupported: true
+        bodyMarkupSupported: true
+        imageSupported: true
+
+        onNotification: notif => {
+            notif.tracked = true
+            const item = {
+                appName: notif.appName || "",
+                summary: notif.summary || "",
+                body: notif.body || "",
+                time: new Date(),
+                urgency: notif.urgency || 1,
+                _notif: notif
+            }
+            nc.notifications = [item].concat(nc.notifications)
         }
+    }
+
+    function clearAll() {
+        for (const n of nc.notifications) {
+            if (n._notif) n._notif.close()
+        }
+        nc.notifications = []
     }
 
     Keys.onEscapePressed: nc.closeRequested()

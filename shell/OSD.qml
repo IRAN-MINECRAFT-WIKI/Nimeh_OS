@@ -82,7 +82,7 @@ PanelWindow {
             spacing: 14
 
             Text {
-                text: osd.muted ? "⊘" : (osd.osdType === "volume" ? "♪" : "☼")
+                text: osd.muted ? "×" : (osd.osdType === "volume" ? "♪" : "☀")
                 color: osd.muted ? "#FCA5A5" : "#4CC2FF"
                 font.pixelSize: 18
                 Layout.preferredWidth: 22

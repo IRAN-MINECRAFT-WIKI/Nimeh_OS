@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 import "."
 
@@ -18,23 +17,17 @@ PanelWindow {
     property var files: []
     property int selectedIndex: -1
 
-    Process {
-        id: lister
-        command: ["sh","-c","ls -1 ~/Desktop 2>/dev/null | head -40"]
-        stdout: StdioCollector { onStreamFinished: {
-            diRoot.files = this.text.trim().split("\n").filter(f => f.length > 0)
-        }}
-    }
-    Timer { interval: 8000; running: true; repeat: true; triggeredOnStart: true; onTriggered: lister.running = true }
+    // TODO: جایگزینی با سرویس پایتون برای لیست فایل‌های دسکتاپ
+    // فعلاً لیست خالی — بدون Process
+    Component.onCompleted: diRoot.files = []
 
     function openFile(name) {
         const path = "$HOME/Desktop/" + name
         Qt.openUrlExternally("file://" + path)
     }
-    Process { id: opener }
+    // اجرای فایل‌منیجر با execDetached (مجاز)
     function openWithDolphin(path) {
-        opener.command = ["dolphin", path]
-        opener.running = true
+        Quickshell.execDetached(["thunar", path])
     }
 
 

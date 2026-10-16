@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as Controls
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import QtQuick.Layouts
 
 // ============================================================
@@ -42,33 +41,28 @@ PanelWindow {
     }
 
     function loadApps() {
-        apps = []
-        appLoader.running = true
+        apps = _defaultApps
+        filteredApps = _defaultApps
     }
 
-    Process {
-        id: appLoader
-        command: ["sh","-c",
-          "for f in /usr/share/applications/*.desktop $HOME/.local/share/applications/*.desktop; do " +
-          "name=$(grep -m1 '^Name=' \"$f\" | cut -d= -f2); " +
-          "exec=$(grep -m1 '^Exec=' \"$f\" | cut -d= -f2 | cut -d' ' -f1); " +
-          "icon=$(grep -m1 '^Icon=' \"$f\" | cut -d= -f2); " +
-          "nd=$(grep -m1 '^NoDisplay=true' \"$f\"); " +
-          "[ -n \"$name\" ] && [ -z \"$nd\" ] && [ -n \"$exec\" ] && echo \"$name|$exec|$icon\"; " +
-          "done | head -80"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const parsed = []
-                const lines = this.text.trim().split("\n")
-                lines.forEach(l => {
-                    if (!l) return
-                    const pr = l.split("|")
-                    if (pr.length >= 2) parsed.push({ name: pr[0], exec: pr[1], icon: pr[2] || "", nodisplay: false })
-                })
-                alRoot.apps = parsed
-                alRoot.filteredApps = parsed
-            }
-        }
+    // لیست برنامه‌ها (موقتی: hardcoded تا ساخته شدن سرویس پایتون)
+    readonly property var _defaultApps: [
+        { name: "Terminal", exec: "foot", icon: "" },
+        { name: "File Manager", exec: "thunar", icon: "" },
+        { name: "Web Browser", exec: "firefox", icon: "" },
+        { name: "Text Editor", exec: "kate", icon: "" },
+        { name: "Settings", exec: "nimehos-settings", icon: "" },
+        { name: "Calculator", exec: "qalculate-gtk", icon: "" },
+        { name: "Image Viewer", exec: "feh", icon: "" },
+        { name: "Music Player", exec: "elisa", icon: "" },
+        { name: "Archive Manager", exec: "ark", icon: "" },
+        { name: "System Monitor", exec: "htop", icon: "" },
+        { name: "Screenshot", exec: "grim", icon: "" },
+        { name: "Package Manager", exec: "synaptic", icon: "" }
+    ]
+    Component.onCompleted: {
+        apps = _defaultApps
+        filteredApps = _defaultApps
     }
 
     function filter(text) {
