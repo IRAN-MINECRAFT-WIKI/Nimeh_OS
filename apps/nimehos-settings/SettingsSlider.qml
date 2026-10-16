@@ -5,6 +5,9 @@
 // ============================================================
 // نوار کپسولی، fill با gradient، knob روی hover/drag بزرگ‌تر می‌شود.
 // طول نوار ۲۰۰px و ارتفاع آن در حالت عادی ۸px و در drag ۱۲px است.
+//
+// توجه: از `sliderEnabled` به‌جای `enabled` استفاده شده — Item.enabled
+// در QtQuick final است و override آن هشدار/خطای نوع تولید می‌کند.
 
 import QtQuick
 
@@ -16,11 +19,19 @@ Item {
     implicitHeight: 32
 
     // ── API عمومی ──
+    // مقدار فعلی
     property real value: 0
+    // بازه‌ی مقدار
     property real from: 0
     property real to: 1
+    // حالت فشردن (داخلی)
     property bool pressed: false
-    property bool enabled: true
+    // فعال/غیرفعال — نامشخص با `enabled` به‌دلیل final بودن Item.enabled
+    property bool sliderEnabled: true
+    // نمایش درصد کنار اسلایدر (اختیاری)
+    property bool showValue: false
+    // فرمت نمایش مقدار (پیش‌فرض: درصد)
+    property string valueSuffix: "٪"
     signal moved(real value)
 
     readonly property real normalized: {
@@ -37,7 +48,7 @@ Item {
         color: Qt.rgba(1, 1, 1, 0.08)
         border.width: 1
         border.color: SettingsTheme.border
-        opacity: root.enabled ? 1.0 : 0.5
+        opacity: root.sliderEnabled ? 1.0 : 0.5
 
         Behavior on height {
             NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
@@ -77,12 +88,24 @@ Item {
         }
     }
 
+    // نمایش مقدار کنار اسلایدر (اختیاری)
+    Text {
+        visible: root.showValue
+        anchors.left: parent.right
+        anchors.leftMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        text: Math.round(root.normalized * 100) + root.valueSuffix
+        color: SettingsTheme.textDim
+        font.family: SettingsTheme.fontLatin
+        font.pixelSize: 11
+    }
+
     MouseArea {
         id: hoverMa
         anchors.fill: parent
         hoverEnabled: true
-        cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        enabled: root.enabled
+        cursorShape: root.sliderEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+        enabled: root.sliderEnabled
         onPressed: (mouse) => { root.pressed = true; root._applyMouse(mouse.x) }
         onReleased: root.pressed = false
         onPositionChanged: (mouse) => {

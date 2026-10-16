@@ -3,20 +3,16 @@
 //
 // Apps.qml — صفحه‌ی برنامه‌ها
 // ============================================================
-// فهرست برنامه‌های نصب‌شده (دو نمونه‌ی hardcode: PhotoCraft و Firefox)
-// با آیکون، نام، نسخه، اندازه و فرمت.
+// هیچ برنامه‌ی fake — فهرست نصب‌شده‌ها «در انتظار سرویس».
+// فهرست: برنامه‌های نصب‌شده، برنامه‌های پیش‌فرض، استارت‌آپ، پخش ویدئو
+// (همگی chevron، غیرفعال یا «در انتظار سرویس»).
 
 import QtQuick
 import ".."
 
 Item {
     id: root
-
-    // ── فهرست برنامه‌ها (hardcode) ──
-    readonly property var apps: [
-        { name: "PhotoCraft", version: "1.2.0", size: "۸۴ مگابایت", format: "AppImage", icon: "🎨", color: "#4a9eff" },
-        { name: "Firefox",    version: "127.0",  size: "۲۱۲ مگابایت", format: "DEB",     icon: "🦊", color: "#f59e0b" }
-    ]
+    anchors.fill: parent
 
     // ── عنوان صفحه ──
     Text {
@@ -33,144 +29,119 @@ Item {
     Text {
         id: subheader
         anchors { top: header.bottom; topMargin: 6; right: parent.right }
-        text: "برنامه‌های نصب‌شده روی سیستم"
+        text: "مدیریت برنامه‌های نصب‌شده و پیش‌فرض"
         color: SettingsTheme.textMute
         font.family: SettingsTheme.fontPersian
         font.pixelSize: 12
     }
 
-    // ── شمارش برنامه‌ها ──
+    // ── کارت شمارش برنامه‌ها — «در انتظار سرویس» ──
     Rectangle {
         id: countCard
         anchors { top: subheader.bottom; topMargin: 18; left: parent.left; right: parent.right }
-        height: 64
+        height: 84
         radius: SettingsTheme.rMd
         color: SettingsTheme.cardBg
         border.width: 1
         border.color: SettingsTheme.border
 
-        Row {
-            anchors.centerIn: parent
-            spacing: 14
-            layoutDirection: Qt.RightToLeft
-
-            Rectangle {
-                width: 36; height: 36; radius: 10
-                color: Qt.rgba(0.29, 0.62, 1.0, 0.16)
-                anchors.verticalCenter: parent.verticalCenter
-                Text {
-                    anchors.centerIn: parent
-                    text: "📦"
-                    font.pixelSize: 16
-                }
+        Canvas {
+            id: appIcon
+            width: 36; height: 36
+            anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
+            onPaint: {
+                const ctx = getContext("2d")
+                ctx.reset()
+                ctx.strokeStyle = SettingsTheme.accentSoft
+                ctx.lineWidth = 1.6
+                ctx.strokeRect(4, 4, 6, 6)
+                ctx.strokeRect(12, 4, 6, 6)
+                ctx.strokeRect(4, 12, 6, 6)
+                ctx.strokeRect(12, 12, 6, 6)
             }
+        }
 
-            Column {
-                spacing: 2
-                anchors.verticalCenter: parent.verticalCenter
-                Text {
-                    text: root.apps.length + " برنامه نصب شده"
-                    color: SettingsTheme.text
-                    font.family: SettingsTheme.fontPersian
-                    font.pixelSize: 13
-                    font.weight: Font.Medium
-                }
-                Text {
-                    text: "مدیریت برنامه‌های نصب‌شده — به‌زودی کامل می‌شود"
-                    color: SettingsTheme.textMute
-                    font.family: SettingsTheme.fontPersian
-                    font.pixelSize: 11
-                }
+        Column {
+            anchors { right: appIcon.left; rightMargin: 12; verticalCenter: parent.verticalCenter; left: parent.left; leftMargin: 14 }
+            spacing: 2
+            Text {
+                text: "برنامه‌های نصب‌شده"
+                color: SettingsTheme.text
+                font.family: SettingsTheme.fontPersian
+                font.pixelSize: 13
+                font.weight: Font.Medium
+            }
+            Text {
+                text: "در انتظار سرویس"
+                color: SettingsTheme.amber
+                font.family: SettingsTheme.fontPersian
+                font.pixelSize: 11
             }
         }
     }
 
-    // ── فهرست برنامه‌ها ──
-    ListView {
-        id: appList
+    // ── فهرست آیتم‌های chevron ──
+    Column {
+        id: listCol
         anchors {
             top: countCard.bottom
-            topMargin: 12
+            topMargin: 18
             left: parent.left
             right: parent.right
-            bottom: parent.bottom
         }
-        clip: true
-        spacing: 10
-        boundsBehavior: Flickable.StopAtBounds
-        interactive: contentHeight > height
+        spacing: 8
+        width: parent.width
 
-        model: root.apps
-        delegate: Rectangle {
-            width: appList.width
-            height: 72
-            radius: SettingsTheme.rMd
-            color: SettingsTheme.cardBg
-            border.width: 1
-            border.color: SettingsTheme.border
+        ChevronRow {
+            width: parent.width
+            iconKind: "apps"
+            title: "برنامه‌های نصب‌شده"
+            statusText: "در انتظار سرویس"
+            rowEnabled: false
+        }
+        ChevronRow {
+            width: parent.width
+            iconKind: "default"
+            title: "برنامه‌های پیش‌فرض"
+            description: "انتخاب برنامه‌ی پیش‌فرض برای وب، ایمیل و…"
+            rowEnabled: false
+        }
+        ChevronRow {
+            width: parent.width
+            iconKind: "startup"
+            title: "استارت‌آپ"
+            description: "برنامه‌هایی که هنگام ورود اجرا می‌شوند"
+            rowEnabled: false
+        }
+        ChevronRow {
+            width: parent.width
+            iconKind: "video"
+            title: "پخش ویدئو"
+            description: "تنظیمات پخش‌کننده‌ی ویدئو"
+            rowEnabled: false
+        }
+    }
 
-            // ── آیکون ──
-            Rectangle {
-                id: appIcon
-                width: 44; height: 44; radius: 12
-                anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
-                color: modelData.color
-                opacity: 0.85
+    // ── یادداشت پایین ──
+    Rectangle {
+        id: note
+        anchors { top: listCol.bottom; topMargin: 18; left: parent.left; right: parent.right }
+        height: 64
+        radius: SettingsTheme.rMd
+        color: SettingsTheme.cardBg
+        border.width: 1
+        border.color: SettingsTheme.border
+        opacity: 0.7
 
-                Text {
-                    anchors.centerIn: parent
-                    text: modelData.icon
-                    font.pixelSize: 20
-                }
-            }
-
-            // ── نام + اطلاعات ──
-            Column {
-                anchors { left: appIcon.right; leftMargin: 12; verticalCenter: parent.verticalCenter; right: actionBtn.left; rightMargin: 12 }
-                spacing: 3
-                Text {
-                    text: modelData.name
-                    color: SettingsTheme.text
-                    font.family: SettingsTheme.fontPersian
-                    font.pixelSize: 13
-                    font.weight: Font.Medium
-                    elide: Text.ElideRight
-                    width: parent.width
-                }
-                Text {
-                    text: "نسخه " + modelData.version + " • " + modelData.size + " • " + modelData.format
-                    color: SettingsTheme.textMute
-                    font.family: SettingsTheme.fontPersian
-                    font.pixelSize: 11
-                    elide: Text.ElideRight
-                    width: parent.width
-                }
-            }
-
-            // ── دکمه‌ی جزئیات ──
-            Rectangle {
-                id: actionBtn
-                width: 36; height: 36; radius: 8
-                anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
-                color: actionMa.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.04)
-                border.width: 1
-                border.color: SettingsTheme.border
-                Behavior on color { ColorAnimation { duration: 120 } }
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "⋯"
-                    color: SettingsTheme.textDim
-                    font.pixelSize: 18
-                }
-
-                MouseArea {
-                    id: actionMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                }
-            }
+        Text {
+            anchors.centerIn: parent
+            text: "فهرست برنامه‌ها در فاز بعدی به‌وسیله‌ی یک سرویس Python (پیمایش فایل‌های .desktop) ارائه می‌شود."
+            color: SettingsTheme.textMute
+            font.family: SettingsTheme.fontPersian
+            font.pixelSize: 11
+            horizontalAlignment: Text.AlignHCenter
+            width: parent.width - 32
+            wrapMode: Text.WordWrap
         }
     }
 }

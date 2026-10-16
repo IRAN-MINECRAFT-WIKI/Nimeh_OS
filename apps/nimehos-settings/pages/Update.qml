@@ -3,13 +3,24 @@
 //
 // Update.qml — صفحه‌ی به‌روزرسانی
 // ============================================================
-// پیام «شما به‌روز هستید» با کارت سبز، آخرین بررسی و دکمه‌ی بررسی دوباره.
+// وضعیت: «نامشخص» (نه «شما به‌روز هستید» — هیچ backend فعلی وجود ندارد) +
+// دکمه‌ی «بررسی دوباره» غیرفعال («در انتظار سرویس») +
+// آخرین بررسی: «نامشخص» + نسخه: «NimehOS» + Quickshell.env یا «نامشخص».
+// هیچ Process — همه‌چیز تزئینی.
 
 import QtQuick
 import ".."
+import Quickshell
 
 Item {
     id: root
+    anchors.fill: parent
+
+    // ── اطلاعات نسخه ──
+    readonly property string userName: Quickshell.env("USER") || ""
+    readonly property string versionString: userName.length > 0
+        ? ("NimehOS (" + userName + ")")
+        : "NimehOS"
 
     // ── عنوان صفحه ──
     Text {
@@ -25,16 +36,14 @@ Item {
 
     Text {
         id: subheader
-        anchors.top: header.bottom
-        anchors.topMargin: 6
-        anchors.right: parent.right
+        anchors { top: header.bottom; topMargin: 6; right: parent.right }
         text: "آخرین به‌روزرسانی‌های NimehOS را بررسی کنید."
         color: SettingsTheme.textMute
         font.family: SettingsTheme.fontPersian
         font.pixelSize: 12
     }
 
-    // ── کارت وضعیت به‌روز ──
+    // ── کارت وضعیت — «نامشخص» (نه سبز «شما به‌روز هستید») ──
     Rectangle {
         id: statusCard
         anchors {
@@ -45,33 +54,36 @@ Item {
         }
         height: 180
         radius: SettingsTheme.rLg
-        color: Qt.rgba(0.13, 0.77, 0.37, 0.10)
+        color: Qt.rgba(0.96, 0.62, 0.04, 0.08)  // amber tint (نامشخص)
         border.width: 1
-        border.color: Qt.rgba(0.13, 0.77, 0.37, 0.35)
+        border.color: Qt.rgba(0.96, 0.62, 0.04, 0.30)
 
         Column {
             anchors.centerIn: parent
             spacing: 14
 
-            // دایره‌ی چک سبز
-            Rectangle {
+            // علامت «؟» در دایره — Canvas
+            Canvas {
                 width: 60
                 height: 60
-                radius: 30
-                color: SettingsTheme.green
                 anchors.horizontalCenter: parent.horizontalCenter
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "✓"
-                    color: "#ffffff"
-                    font.pixelSize: 30
-                    font.weight: Font.Bold
+                onPaint: {
+                    const ctx = getContext("2d")
+                    ctx.reset()
+                    ctx.fillStyle = SettingsTheme.amber
+                    ctx.beginPath()
+                    ctx.arc(30, 30, 30, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.fillStyle = "#ffffff"
+                    ctx.font = "bold 32px " + SettingsTheme.fontPersian
+                    ctx.textAlign = "center"
+                    ctx.textBaseline = "middle"
+                    ctx.fillText("؟", 30, 32)
                 }
             }
 
             Text {
-                text: "شما به‌روز هستید"
+                text: "وضعیت: نامشخص"
                 color: SettingsTheme.text
                 font.family: SettingsTheme.fontPersian
                 font.pixelSize: 18
@@ -80,7 +92,7 @@ Item {
             }
 
             Text {
-                text: "آخرین بررسی: همین الان"
+                text: "آخرین بررسی: نامشخص"
                 color: SettingsTheme.textDim
                 font.family: SettingsTheme.fontPersian
                 font.pixelSize: 12
@@ -89,7 +101,7 @@ Item {
         }
     }
 
-    // ── دکمه‌ی بررسی دوباره ──
+    // ── دکمه‌ی «بررسی دوباره» — غیرفعال ──
     Rectangle {
         id: checkBtn
         anchors {
@@ -97,17 +109,18 @@ Item {
             topMargin: 18
             horizontalCenter: parent.horizontalCenter
         }
-        width: 200
+        width: 220
         height: 40
         radius: SettingsTheme.rSm
         color: checkMa.containsMouse ? SettingsTheme.accentDeep : SettingsTheme.accent
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.12)
+        opacity: 0.55  // غیرفعال
         Behavior on color { ColorAnimation { duration: 120 } }
 
         Text {
             anchors.centerIn: parent
-            text: "بررسی دوباره‌ی به‌روزرسانی"
+            text: "بررسی دوباره — در انتظار سرویس"
             color: "#ffffff"
             font.family: SettingsTheme.fontPersian
             font.pixelSize: 12
@@ -118,7 +131,8 @@ Item {
             id: checkMa
             anchors.fill: parent
             hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
+            cursorShape: Qt.ArrowCursor  // غیرفعال
+            enabled: false
         }
     }
 
@@ -156,15 +170,16 @@ Item {
                 color: SettingsTheme.border
             }
 
-            InfoLine { label: "نسخه‌ی سیستم‌عامل"; value: "NimehOS 1.0 (Trixie)" }
-            InfoLine { label: "کانال به‌روزرسانی"; value: "پایدار" }
-            InfoLine { label: "آخرین به‌روزرسانی"; value: "—" }
+            InfoLine { width: parent.width; label: "نسخه‌ی سیستم‌عامل";  value: root.versionString }
+            InfoLine { width: parent.width; label: "کانال به‌روزرسانی";   value: "نامشخص" }
+            InfoLine { width: parent.width; label: "آخرین به‌روزرسانی";   value: "نامشخص" }
+            InfoLine { width: parent.width; label: "شناسه‌ی دستگاه";      value: "نامشخص" }
         }
     }
 
     // ── کامپوننت داخلی InfoLine ──
     component InfoLine: Item {
-        width: parent.width
+        width: parent ? parent.width : 400
         height: 22
         property string label: ""
         property string value: ""
@@ -184,6 +199,8 @@ Item {
             font.pixelSize: 12
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
+            elide: Text.ElideRight
+            width: parent.width * 0.6
         }
     }
 }

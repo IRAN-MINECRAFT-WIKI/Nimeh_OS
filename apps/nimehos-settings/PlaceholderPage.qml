@@ -3,7 +3,8 @@
 //
 // PlaceholderPage.qml — صفحه‌ی نگهدارنده برای بخش‌های «به‌زودی»
 // ============================================================
-// یک کارت مرکزی با emoji، عنوان و پیام «این بخش در فاز بعدی تکمیل می‌شود.»
+// یک کارت مرکزی با آیکون Canvas، عنوان و پیام «این بخش در فاز بعدی تکمیل می‌شود.»
+// (هیچ emoji استفاده نمی‌شود — آیکون با Canvas کشیده می‌شود.)
 
 import QtQuick
 
@@ -12,7 +13,6 @@ Item {
 
     // ── API عمومی ──
     property string pageTitle: ""
-    property string emoji: "🚧"
     property string message: "این بخش در فاز بعدی تکمیل می‌شود."
 
     // ── عنوان صفحه (بالای صفحه) ──
@@ -43,7 +43,7 @@ Item {
             anchors.centerIn: parent
             spacing: 18
 
-            // دایره‌ی emoji
+            // دایره‌ی آیکون (Canvas — سه نقطه «در حال انجام»)
             Rectangle {
                 width: 72
                 height: 72
@@ -53,10 +53,21 @@ Item {
                 border.width: 1
                 border.color: SettingsTheme.borderHi
 
-                Text {
+                Canvas {
                     anchors.centerIn: parent
-                    text: root.emoji
-                    font.pixelSize: 34
+                    width: 32
+                    height: 12
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.reset()
+                        ctx.fillStyle = SettingsTheme.textMute
+                        // سه نقطه
+                        for (let i = 0; i < 3; i++) {
+                            ctx.beginPath()
+                            ctx.arc(6 + i * 10, 6, 3, 0, 2 * Math.PI)
+                            ctx.fill()
+                        }
+                    }
                 }
             }
 

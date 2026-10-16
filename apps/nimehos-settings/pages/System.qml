@@ -5,7 +5,8 @@
 // ============================================================
 // صدا (Pipewire.defaultAudioSink.audio.volume)، باتری
 // (UPower.displayDevice.percentage)، حالت تاریک، اعلان‌ها،
-// حالت هواپیما (قفل سیستم — قرمز)، به‌روزرسانی خودکار (نامشخص).
+// حالت هواپیما (قفل سیستم — قرمز، locked=true)، به‌روزرسانی
+// خودکار (نامشخص — unknown=true)، روشنایی نمایشگر (در انتظار سرویس).
 //
 // توجه: هیچ Process/execDetached استفاده نمی‌شود. تمام داده‌ها از
 // Quickshell.Services.Pipewire و Quickshell.Services.UPower خوانده می‌شوند.
@@ -18,6 +19,7 @@ import Quickshell.Services.UPower
 
 Item {
     id: root
+    anchors.fill: parent
 
     // ── صدا (Pipewire) ──
     readonly property var audioSink: Pipewire.defaultAudioSink
@@ -64,6 +66,7 @@ Item {
         model: [
             { kind: "sound" },
             { kind: "battery" },
+            { kind: "bright" },
             { kind: "dark" },
             { kind: "notif" },
             { kind: "airplane" },
@@ -79,6 +82,7 @@ Item {
                     switch (modelData.kind) {
                         case "sound":     return soundComp
                         case "battery":   return batteryComp
+                        case "bright":    return brightComp
                         case "dark":      return darkComp
                         case "notif":     return notifComp
                         case "airplane":  return airplaneComp
@@ -91,7 +95,8 @@ Item {
     }
 
     // ============================================================
-    // کامپوننت‌های داخلی
+    // کامپوننت‌های داخلی — هر یک با anchors.fill: parent
+    // تا parent.width به‌صورت ایمن در دسترس باشد.
     // ============================================================
 
     // ── صدا ──
@@ -106,14 +111,29 @@ Item {
             border.color: SettingsTheme.border
             radius: SettingsTheme.rMd
 
-            // آیکون صدا
-            Rectangle {
+            // آیکون صدا — Canvas (نه emoji)
+            Canvas {
                 id: sndIcon
-                width: 36; height: 36; radius: 10
+                width: 36; height: 36
                 anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
-                color: Qt.rgba(1, 1, 1, 0.05)
-                border.width: 1; border.color: SettingsTheme.border
-                Text { anchors.centerIn: parent; text: "🔊"; font.pixelSize: 16 }
+                onPaint: {
+                    const ctx = getContext("2d")
+                    ctx.reset()
+                    ctx.strokeStyle = SettingsTheme.accentSoft
+                    ctx.fillStyle = SettingsTheme.accentSoft
+                    ctx.lineWidth = 1.5
+                    ctx.lineCap = "round"
+                    ctx.lineJoin = "round"
+                    // بلندگو
+                    ctx.beginPath()
+                    ctx.moveTo(9, 14); ctx.lineTo(13, 14); ctx.lineTo(18, 9); ctx.lineTo(18, 27); ctx.lineTo(13, 22); ctx.lineTo(9, 22); ctx.closePath()
+                    ctx.fill()
+                    // امواج صدا
+                    ctx.beginPath()
+                    ctx.arc(18, 18, 5, -Math.PI * 0.35, Math.PI * 0.35)
+                    ctx.stroke()
+                }
+                anchors.verticalCenter: parent.verticalCenter
             }
 
             Column {
@@ -143,7 +163,7 @@ Item {
                 width: 200
                 from: 0; to: 1
                 value: root.muted ? 0 : root.volume
-                enabled: root.audioSink != null && !root.muted
+                sliderEnabled: root.audioSink != null && !root.muted
                 onMoved: (v) => {
                     if (root.audioSink) {
                         root.audioSink.audio.muted = false
@@ -166,13 +186,22 @@ Item {
             border.color: SettingsTheme.border
             radius: SettingsTheme.rMd
 
-            Rectangle {
+            Canvas {
                 id: batIcon
-                width: 36; height: 36; radius: 10
+                width: 36; height: 36
                 anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
-                color: Qt.rgba(1, 1, 1, 0.05)
-                border.width: 1; border.color: SettingsTheme.border
-                Text { anchors.centerIn: parent; text: "🔋"; font.pixelSize: 16 }
+                onPaint: {
+                    const ctx = getContext("2d")
+                    ctx.reset()
+                    ctx.strokeStyle = SettingsTheme.accentSoft
+                    ctx.fillStyle = SettingsTheme.accentSoft
+                    ctx.lineWidth = 1.5
+                    // بدنه‌ی باتری
+                    ctx.strokeRect(6, 12, 22, 12)
+                    ctx.fillRect(28, 15, 2, 6)
+                    // نوار شارژ
+                    ctx.fillRect(8, 14, 18 * Math.max(0, Math.min(1, root.batteryPercent / 100)), 8)
+                }
             }
 
             Column {
@@ -188,7 +217,7 @@ Item {
                 Text {
                     text: root.hasBattery
                           ? (root.batteryPercent + "٪" + (root.charging ? " — در حال شارژ" : " — روی باتری"))
-                          : "باتری یافت نشد (دسکتاپ/VM)"
+                          : "باتری موجود نیست"
                     color: root.hasBattery ? (root.charging ? SettingsTheme.green : SettingsTheme.amber) : SettingsTheme.textMute
                     font.family: SettingsTheme.fontPersian
                     font.pixelSize: 11
@@ -239,9 +268,35 @@ Item {
         }
     }
 
+    // ── روشنایی نمایشگر (در انتظار سرویس — بدون brightnessctl) ──
+    component BrightnessRow: SettingRow {
+        iconKind: "bright"
+        title: "روشنایی نمایشگر"
+        description: "در انتظار سرویس"
+        // هیچ کنترلی — فقط برچسب «در انتظار سرویس»
+        Item {
+            anchors.centerIn: parent
+            width: 100; height: 28
+            Rectangle {
+                anchors.fill: parent
+                radius: 14
+                color: Qt.rgba(1, 1, 1, 0.06)
+                border.width: 1
+                border.color: SettingsTheme.borderHi
+                Text {
+                    anchors.centerIn: parent
+                    text: "در انتظار سرویس"
+                    color: SettingsTheme.amber
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 10
+                }
+            }
+        }
+    }
+
     // ── حالت تاریک ──
     component DarkRow: SettingRow {
-        iconText: "🌙"
+        iconKind: "dark"
         title: "حالت تاریک"
         description: "تم تیره برای کل سیستم"
         SettingsSwitch {
@@ -253,7 +308,7 @@ Item {
 
     // ── اعلان‌ها ──
     component NotifRow: SettingRow {
-        iconText: "🔔"
+        iconKind: "notif"
         title: "اعلان‌ها"
         description: "نمایش اعلان‌های برنامه‌ها و سیستم"
         SettingsSwitch {
@@ -265,7 +320,7 @@ Item {
 
     // ── حالت هواپیما (قفل شده — قرمز) ──
     component AirplaneRow: SettingRow {
-        iconText: "✈"
+        iconKind: "airplane"
         title: "حالت هواپیما"
         description: "قفل شده توسط مدیر سیستم"
         SettingsSwitch {
@@ -277,33 +332,20 @@ Item {
 
     // ── به‌روزرسانی خودکار (نامشخص) ──
     component AutoUpdateRow: SettingRow {
-        iconText: "🔄"
+        iconKind: "update"
         title: "به‌روزرسانی خودکار"
-        description: "در انتظار…"
-        Item {
+        description: "وضعیت نامشخص"
+        SettingsSwitch {
             anchors.centerIn: parent
-            width: 48; height: 28
-            Rectangle {
-                anchors.fill: parent
-                radius: 14
-                color: Qt.rgba(1, 1, 1, 0.08)
-                border.width: 1
-                border.color: SettingsTheme.borderHi
-                Text {
-                    anchors.centerIn: parent
-                    text: "؟"
-                    color: SettingsTheme.textDim
-                    font.family: SettingsTheme.fontPersian
-                    font.pixelSize: 14
-                    font.weight: Font.DemiBold
-                }
-            }
+            checked: false
+            unknown: true
         }
     }
 
     // ── کامپوننت‌های اصلی برای Loader ──
     Component { id: soundComp;     SoundRow {} }
     Component { id: batteryComp;   BatteryRow {} }
+    Component { id: brightComp;    BrightnessRow {} }
     Component { id: darkComp;      DarkRow {} }
     Component { id: notifComp;     NotifRow {} }
     Component { id: airplaneComp;  AirplaneRow {} }

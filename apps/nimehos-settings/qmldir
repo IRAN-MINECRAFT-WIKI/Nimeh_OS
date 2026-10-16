@@ -13,6 +13,7 @@ singleton SettingsTheme 1.0 SettingsTheme.qml
 # ============================================================
 # Reusable Components (alphabetical)
 # ============================================================
+ChevronRow      1.0 ChevronRow.qml
 PlaceholderPage 1.0 PlaceholderPage.qml
 SettingRow      1.0 SettingRow.qml
 SettingsCard    1.0 SettingsCard.qml
