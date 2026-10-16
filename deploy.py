@@ -429,8 +429,6 @@ def step_snapshot():
     # روش ۲: pkill با bracket trick
     # '[c]aelestia' باعث می‌شه pkill خودش رو match نکنه (suicide prevention)
     log("تلاش با pkill -f '[c]aelestia'...", "INFO")
-    if out and "DONE" in out:
-
     # روش ۳: kill تمام quickshellها (exact match — SSH رو نمی‌بنده)
     log("بستن تمام نمونه‌های quickshell (pkill -x)...", "INFO")
     rc, out, err = ssh_run(f"{QUICKSHELL_KILL} 2>/dev/null; sleep 2; echo DONE", timeout=15)
@@ -651,6 +649,7 @@ def step_configure():
     )
     if out:
         if "BACKED_UP" in out:
+            pass
         elif "BAK_EXISTS" in out:
             log("  • backup قبلاً گرفته شده — حفظ می‌شه", "INFO")
         elif "NO_CONF" in out:
@@ -864,6 +863,7 @@ def step_logs():
 
     cmd = (
         QS_ENV +
+        f"nohup quickshell -p {REMOTE_SHELL} > /tmp/qs.log 2>&1 < /dev/null &"
     )
     ssh_run(cmd, timeout=15)
     time.sleep(4)
@@ -872,6 +872,7 @@ def step_logs():
     rc, out, err = ssh_run("pgrep -x quickshell | head -1", timeout=10)
     pid = out.strip() if out else ""
     if pid:
+        pass
     else:
         rc, out, err = ssh_run("tail -20 /tmp/qs.log 2>/dev/null", timeout=10)
         if out:
@@ -1003,6 +1004,7 @@ def main():
         return 0
 
         if ok:
+            pass
         return 0 if ok else 1
 
     # --- all ---
