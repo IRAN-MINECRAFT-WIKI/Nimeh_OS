@@ -1,0 +1,20 @@
+# ============================================================
+# qmldir — Local type definitions for NimehOS Settings app
+# ============================================================
+# This file declares every QML type in this directory so
+# Quickshell/QtQuick can resolve them without `import`.
+# It is a LOCAL qmldir (NO `module` line).
+
+# ============================================================
+# Singletons
+# ============================================================
+singleton SettingsTheme 1.0 SettingsTheme.qml
+
+# ============================================================
+# Reusable Components (alphabetical)
+# ============================================================
+PlaceholderPage 1.0 PlaceholderPage.qml
+SettingRow      1.0 SettingRow.qml
+SettingsCard    1.0 SettingsCard.qml
+SettingsSlider  1.0 SettingsSlider.qml
+SettingsSwitch  1.0 SettingsSwitch.qml

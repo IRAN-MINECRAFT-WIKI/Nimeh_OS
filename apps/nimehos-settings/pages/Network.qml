@@ -1,89 +1,138 @@
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2024 NimehOS Contributors
+//
+// Network.qml — صفحه‌ی شبکه و اینترنت
+// ============================================================
+// وضعیت Wi-Fi (نمایش «در انتظار سرویس» — بدون nmcli) و سوییچ
+// حالت هواپیما (تنها یک پراپرتی محلی — هیچ فرمان سیستمی اجرا نمی‌شود).
+
 import QtQuick
-import Quickshell
-import Quickshell.Io
+import ".."
 
 Item {
-    id: page
-    property bool wifiOn: false
-    property bool btOn: false
-    property string ssid: ""
+    id: root
 
-    Process {
-        id: netCheck
-        command: ["sh", "-c", "rfkill list wifi 2>/dev/null | grep -q 'blocked: no' && echo WIFI_ON || echo WIFI_OFF; nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2 || echo ''; bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo BT_ON || echo BT_OFF"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const lines = this.text.trim().split("\n")
-                page.wifiOn = lines[0] === "WIFI_ON"
-                page.ssid = lines[1] || ""
-                page.btOn = lines[2] === "BT_ON"
-            }
-        }
+    // ── پراپرتی محلی — هیچ backend متصل نیست ──
+    property bool airplaneMode: false
+
+    // ── عنوان صفحه ──
+    Text {
+        id: header
+        anchors.top: parent.top
+        anchors.right: parent.right
+        text: "شبکه و اینترنت"
+        color: SettingsTheme.text
+        font.family: SettingsTheme.fontPersian
+        font.pixelSize: 24
+        font.weight: Font.DemiBold
     }
-    Component.onCompleted: netCheck.running = true
 
     Column {
-        anchors.fill: parent
-        spacing: 12
+        id: list
+        anchors {
+            top: header.bottom
+            topMargin: 20
+            left: parent.left
+            right: parent.right
+        }
+        spacing: 10
+        width: parent.width
 
-        Text { text: "شبکه و اینترنت"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 20; weight: Font.Bold } }
-
-        // WiFi
+        // ── کارت وضعیت Wi-Fi ──
         Rectangle {
-            width: parent.width; height: 80; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Row {
-                anchors { fill: parent; margins: 16 }
-                spacing: 12
-                Column {
-                    spacing: 4
-                    Text { text: "📶 وای‌فای"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 13; weight: Font.Medium } }
-                    Text { text: page.wifiOn ? (page.ssid ? "متصل به: " + page.ssid : "روشن — متصل نیست") : "خاموش"; color: "#888888"; font { family: "Vazirmatn"; pixelSize: 11 } }
+            width: parent.width
+            height: 90
+            radius: SettingsTheme.rMd
+            color: SettingsTheme.cardBg
+            border.width: 1
+            border.color: SettingsTheme.border
+
+            Rectangle {
+                id: wifiIcon
+                width: 36; height: 36; radius: 10
+                anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
+                color: Qt.rgba(1, 1, 1, 0.05)
+                border.width: 1; border.color: SettingsTheme.border
+
+                // ── نمودار میله‌ای Wi-Fi (تزئینی) ──
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 2
+                    layoutDirection: Qt.LeftToRight
+
+                    Rectangle { width: 3; height: 5;  radius: 1; color: SettingsTheme.textMute; anchors.bottom: parent.bottom }
+                    Rectangle { width: 3; height: 9;  radius: 1; color: SettingsTheme.textMute; anchors.bottom: parent.bottom }
+                    Rectangle { width: 3; height: 13; radius: 1; color: SettingsTheme.textMute; anchors.bottom: parent.bottom }
+                    Rectangle { width: 3; height: 17; radius: 1; color: SettingsTheme.textMute; anchors.bottom: parent.bottom }
                 }
-                Item { width: parent.width - 200; height: parent.height }
-                Rectangle {
-                    width: 40; height: 20; radius: 10; anchors.verticalCenter: parent.verticalCenter
-                    color: page.wifiOn ? "#0078D4" : "#444444"
-                    Rectangle { x: page.wifiOn ? 22 : 2; y: 2; width: 16; height: 16; radius: 8; color: "#FFFFFF"; Behavior on x { NumberAnimation { duration: 150 } } }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { page.wifiOn = !page.wifiOn; Quickshell.execDetached(["sh", "-c", "nmcli radio wifi " + (page.wifiOn ? "on" : "off")]) } }
+            }
+
+            Column {
+                anchors { left: wifiIcon.right; leftMargin: 12; verticalCenter: parent.verticalCenter; right: parent.right; rightMargin: 14 }
+                spacing: 2
+                Text {
+                    text: "Wi-Fi"
+                    color: SettingsTheme.text
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                }
+                Text {
+                    text: "در انتظار سرویس"
+                    color: SettingsTheme.amber
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 11
                 }
             }
         }
 
-        // Bluetooth
+        // ── کارت شبکه‌ی سیمی (Ethernet) ──
         Rectangle {
-            width: parent.width; height: 80; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Row {
-                anchors { fill: parent; margins: 16 }
-                spacing: 12
-                Column {
-                    spacing: 4
-                    Text { text: "🔵 بلوتوث"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 13; weight: Font.Medium } }
-                    Text { text: page.btOn ? "روشن" : "خاموش"; color: "#888888"; font { family: "Vazirmatn"; pixelSize: 11 } }
+            width: parent.width
+            height: 90
+            radius: SettingsTheme.rMd
+            color: SettingsTheme.cardBg
+            border.width: 1
+            border.color: SettingsTheme.border
+
+            Rectangle {
+                id: ethIcon
+                width: 36; height: 36; radius: 10
+                anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
+                color: Qt.rgba(1, 1, 1, 0.05)
+                border.width: 1; border.color: SettingsTheme.border
+                Text { anchors.centerIn: parent; text: "🔗"; font.pixelSize: 16 }
+            }
+
+            Column {
+                anchors { left: ethIcon.right; leftMargin: 12; verticalCenter: parent.verticalCenter; right: parent.right; rightMargin: 14 }
+                spacing: 2
+                Text {
+                    text: "اتصال سیمی (Ethernet)"
+                    color: SettingsTheme.text
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
                 }
-                Item { width: parent.width - 200; height: parent.height }
-                Rectangle {
-                    width: 40; height: 20; radius: 10; anchors.verticalCenter: parent.verticalCenter
-                    color: page.btOn ? "#0078D4" : "#444444"
-                    Rectangle { x: page.btOn ? 22 : 2; y: 2; width: 16; height: 16; radius: 8; color: "#FFFFFF"; Behavior on x { NumberAnimation { duration: 150 } } }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { page.btOn = !page.btOn; Quickshell.execDetached(["sh", "-c", "bluetoothctl power " + (page.btOn ? "on" : "off")]) } }
+                Text {
+                    text: "در انتظار سرویس"
+                    color: SettingsTheme.amber
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 11
                 }
             }
         }
 
-        // Airplane mode
-        Rectangle {
-            width: parent.width; height: 60; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Row {
-                anchors { fill: parent; margins: 16 }
-                spacing: 12
-                Text { text: "✈ حالت پرواز"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 13; weight: Font.Medium }; anchors.verticalCenter: parent.verticalCenter }
-                Item { width: parent.width - 200; height: parent.height }
-                Rectangle {
-                    width: 40; height: 20; radius: 10; anchors.verticalCenter: parent.verticalCenter
-                    color: (!page.wifiOn && !page.btOn) ? "#F59E0B" : "#444444"
-                    Rectangle { x: (!page.wifiOn && !page.btOn) ? 22 : 2; y: 2; width: 16; height: 16; radius: 8; color: "#FFFFFF"; Behavior on x { NumberAnimation { duration: 150 } } }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { page.wifiOn = false; page.btOn = false; Quickshell.execDetached(["sh", "-c", "nmcli radio wifi off; bluetoothctl power off; rfkill block all"]) } }
-                }
+        // ── سوییچ حالت هواپیما ──
+        SettingRow {
+            iconText: "✈"
+            title: "حالت هواپیما"
+            description: "قطع تمام ارتباط‌های بی‌سیم"
+            width: parent.width
+            SettingsSwitch {
+                anchors.centerIn: parent
+                checked: root.airplaneMode
+                onToggled: (c) => root.airplaneMode = c
             }
         }
     }

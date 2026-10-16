@@ -1,94 +1,164 @@
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2024 NimehOS Contributors
+//
+// Personalization.qml — صفحه‌ی شخصی‌سازی
+// ============================================================
+// گرید ۶ والپیپر (با انتخاب محلی) و picker رنگ accent (۴ swatch).
+
 import QtQuick
-import Quickshell
-import Quickshell.Io
+import ".."
 
 Item {
-    id: page
-    property bool darkTheme: true
-    property string accentColor: "#0078D4"
+    id: root
 
-    Column {
-        anchors.fill: parent
-        spacing: 12
+    // ── انتخاب محلی ──
+    property int selectedWallpaper: 0
+    property color selectedAccent: SettingsTheme.accent
 
-        Text { text: "شخصی‌سازی"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 20; weight: Font.Bold } }
+    // ── ۶ گرادیان والپیپر ──
+    readonly property var wallpapers: [
+        { c1: "#0f1420", c2: "#2b7fe0", name: "آبی عمیق" },
+        { c1: "#1a1330", c2: "#4a9eff", name: "بنفش شب" },
+        { c1: "#0a0e27", c2: "#22c55e", name: "جنگل" },
+        { c1: "#3a1a30", c2: "#f59e0b", name: "غروب" },
+        { c1: "#0f1420", c2: "#ef4444", name: "شفق" },
+        { c1: "#1e2538", c2: "#6eb0ff", name: "مه" }
+    ]
 
-        // ── تم دارک/لایت ──
-        Rectangle {
-            width: parent.width; height: 70; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Row {
-                anchors { fill: parent; margins: 16 }
-                spacing: 12
-                Text { text: "🎨 تم"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 13; weight: Font.Medium }; anchors.verticalCenter: parent.verticalCenter }
-                Item { width: parent.width - 120; height: parent.height; anchors.verticalCenter: parent.verticalCenter
-                    Row {
-                        anchors.centerIn: parent; spacing: 8
-                        Repeater {
-                            model: [{ name: "تیره", val: true }, { name: "روشن", val: false }]
-                            delegate: Rectangle {
-                                width: 80; height: 32; radius: 6
-                                color: page.darkTheme === modelData.val ? Qt.rgba(0, 0.47, 0.83, 0.3) : "#333333"
-                                border.width: page.darkTheme === modelData.val ? 1 : 0
-                                border.color: "#0078D4"
-                                Text { anchors.centerIn: parent; text: modelData.name; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 11 } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: page.darkTheme = modelData.val }
-                            }
-                        }
+    // ── ۴ swatch رنگ accent ──
+    readonly property var accents: [
+        { color: "#4a9eff", name: "آبی" },
+        { color: "#22c55e", name: "سبز" },
+        { color: "#f59e0b", name: "کهربایی" },
+        { color: "#ef4444", name: "قرمز" }
+    ]
+
+    // ── عنوان صفحه ──
+    Text {
+        id: header
+        anchors.top: parent.top
+        anchors.right: parent.right
+        text: "شخصی‌سازی"
+        color: SettingsTheme.text
+        font.family: SettingsTheme.fontPersian
+        font.pixelSize: 24
+        font.weight: Font.DemiBold
+    }
+
+    // ── بخش والپیپر ──
+    Text {
+        id: wallpaperHeader
+        anchors { top: header.bottom; topMargin: 20; right: parent.right }
+        text: "🖼 پس‌زمینه"
+        color: SettingsTheme.text
+        font.family: SettingsTheme.fontPersian
+        font.pixelSize: 14
+        font.weight: Font.Medium
+    }
+
+    Grid {
+        id: wallpaperGrid
+        anchors { top: wallpaperHeader.bottom; topMargin: 12; left: parent.left; right: parent.right }
+        columns: 3
+        spacing: 10
+        width: parent.width
+
+        Repeater {
+            model: root.wallpapers
+            delegate: Rectangle {
+                width: (parent.width - 20) / 3
+                height: 84
+                radius: SettingsTheme.rMd
+                border.width: root.selectedWallpaper === index ? 2 : 1
+                border.color: root.selectedWallpaper === index ? SettingsTheme.accent : SettingsTheme.border
+                Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                gradient: Gradient {
+                    GradientStop { position: 0; color: modelData.c1 }
+                    GradientStop { position: 1; color: modelData.c2 }
+                }
+
+                Text {
+                    anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter; bottomMargin: 8 }
+                    text: modelData.name
+                    color: "#ffffff"
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 11
+                    font.weight: Font.Medium
+                }
+
+                // ── چک‌مارک وقتی انتخاب شده ──
+                Rectangle {
+                    visible: root.selectedWallpaper === index
+                    width: 22; height: 22; radius: 11
+                    anchors { top: parent.top; left: parent.left; topMargin: 8; leftMargin: 8 }
+                    color: SettingsTheme.accent
+                    Text {
+                        anchors.centerIn: parent
+                        text: "✓"
+                        color: "#ffffff"
+                        font.pixelSize: 12
+                        font.weight: Font.Bold
                     }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.selectedWallpaper = index
                 }
             }
         }
+    }
 
-        // ── رنگ accent ──
-        Rectangle {
-            width: parent.width; height: 100; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Column {
-                anchors { fill: parent; margins: 16 }
-                spacing: 10
-                Text { text: "رنگ اصلی"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 13; weight: Font.Medium } }
-                Row {
-                    spacing: 10
-                    Repeater {
-                        model: ["#0078D4", "#8B5CF6", "#22D3AE", "#F59E0B", "#EF4444", "#EC4899"]
-                        delegate: Rectangle {
-                            width: 36; height: 36; radius: 18
-                            color: modelData
-                            border.width: page.accentColor === modelData ? 3 : 0
-                            border.color: "#FFFFFF"
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: page.accentColor = modelData }
-                        }
-                    }
+    // ── بخش رنگ accent ──
+    Text {
+        id: accentHeader
+        anchors { top: wallpaperGrid.bottom; topMargin: 26; right: parent.right }
+        text: "🎨 رنگ اصلی"
+        color: SettingsTheme.text
+        font.family: SettingsTheme.fontPersian
+        font.pixelSize: 14
+        font.weight: Font.Medium
+    }
+
+    Row {
+        id: accentRow
+        anchors { top: accentHeader.bottom; topMargin: 12; right: parent.right }
+        spacing: 14
+        layoutDirection: Qt.RightToLeft
+
+        Repeater {
+            model: root.accents
+            delegate: Rectangle {
+                width: 44
+                height: 44
+                radius: 22
+                color: modelData.color
+                border.width: root.selectedAccent === modelData.color ? 3 : 1
+                border.color: root.selectedAccent === modelData.color ? "#ffffff" : SettingsTheme.borderHi
+                Behavior on border.width { NumberAnimation { duration: 120 } }
+
+                // حلقه‌ی داخلی سفید وقتی انتخاب شده
+                Rectangle {
+                    visible: root.selectedAccent === modelData.color
+                    anchors.centerIn: parent
+                    width: 14; height: 14; radius: 7
+                    color: "#ffffff"
                 }
-            }
-        }
 
-        // ── والپیپر ──
-        Rectangle {
-            width: parent.width; height: 140; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Column {
-                anchors { fill: parent; margins: 16 }
-                spacing: 10
-                Text { text: "🖼 پس‌زمینه"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 13; weight: Font.Medium } }
-                Row {
-                    spacing: 10
-                    Repeater {
-                        model: [
-                            { c1: "#0A0E27", c2: "#1A1F3A", name: "شب" },
-                            { c1: "#1A1330", c2: "#0A0A0C", name: "غروب" },
-                            { c1: "#0A0A0C", c2: "#151820", name: "تیره" },
-                            { c1: "#1E1E2E", c2: "#181825", name: "بنفش" }
-                        ]
-                        delegate: Rectangle {
-                            width: 80; height: 50; radius: 6
-                            gradient: Gradient {
-                                GradientStop { position: 0; color: modelData.c1 }
-                                GradientStop { position: 1; color: modelData.c2 }
-                            }
-                            border.width: 1; border.color: "#444444"
-                            Text { anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottomMargin: 4; text: modelData.name; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 9 } }
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor }
-                        }
-                    }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.selectedAccent = modelData.color
+                }
+
+                Text {
+                    anchors { top: parent.bottom; topMargin: 4; horizontalCenter: parent.horizontalCenter }
+                    text: modelData.name
+                    color: SettingsTheme.textMute
+                    font.family: SettingsTheme.fontPersian
+                    font.pixelSize: 10
                 }
             }
         }

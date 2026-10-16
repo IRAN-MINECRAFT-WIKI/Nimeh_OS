@@ -1,15 +1,14 @@
-import QtQuick
-import Quickshell
-import Quickshell.Io
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2024 NimehOS Contributors
+//
+// Privacy.qml — صفحه‌ی نگهدارنده برای «حریم خصوصی»
+// ============================================================
 
-Item {
-    Column {
-        anchors.fill: parent
-        spacing: 12
-        Text { text: "Privacy"; color: "#FFFFFF"; font { family: "Vazirmatn"; pixelSize: 20; weight: Font.Bold } }
-        Rectangle {
-            width: parent.width; height: 60; radius: 8; color: "#2A2A2A"; border { width: 1; color: "#333333" }
-            Text { anchors.centerIn: parent; text: "این صفحه در حال توسعه است"; color: "#666666"; font { family: "Vazirmatn"; pixelSize: 12 } }
-        }
-    }
+import QtQuick
+import ".."
+
+PlaceholderPage {
+    pageTitle: "حریم خصوصی"
+    emoji: "🔒"
+    message: "این بخش در فاز بعدی تکمیل می‌شود."
 }
